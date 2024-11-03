@@ -8,7 +8,6 @@
 
 import requests
 import pandas as pd
-import dask.dataframe as dd
 from pymongo import MongoClient
 import numpy as np
 from datetime import date, timedelta
