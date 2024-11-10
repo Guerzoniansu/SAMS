@@ -13,6 +13,7 @@ from extern.dash.soil import plotSoil as pts
 from extern.dash.params import stat as s
 from extern.dash.params import plot as p
 from extern.dash.dt import dtmaker as d
+from extern.dash import analysis as a
 
 app = Flask(__name__)
 
@@ -1231,13 +1232,82 @@ def loadDashAnalysisBoard():
         year = request.args.get('year', default=None)
         tech = request.args.get('tech', default=None)
         crop = request.args.get('crop', default=None)
+    
+    code = a.getCountryCode(lat, lon) # get country code
 
-    # dt = d.getCountryRasterDataFromPoint(lat, lon, "physicalArea", tech, year, crop)
+    # Get last parameters update date
+    t2mlu = a.getParamLastUpdate("t2m", key)
+    prectotcorrlu = a.getParamLastUpdate("prectotcorr", key)
+    ws2mlu = a.getParamLastUpdate("WS2M", key)
+    evptrnslu = a.getParamLastUpdate("EVPTRNS", key)
+    evlandlu = a.getParamLastUpdate("EVLAND", key)
+
+    # Get parameters last value for those dates
+    t2m = a.getParamLastValue("t2m", key)
+    prectotcorr = a.getParamLastValue("prectotcorr", key)
+    ws2m = a.getParamLastValue("ws2m", key)
+    evptrns = a.getParamLastValue("evptrns", key)
+    evland = a.getParamLastValue("evland", key)
+
+    # get parameters growth rate
+    t2mr, t2ms = a.getParamGrowthRate("t2m", key)
+    prectotcorrr, prectotcorrs = a.getParamGrowthRate("prectotcorr", key)
+    ws2mr, ws2ms = a.getParamGrowthRate("ws2m", key)
+    evptrnsr, evptrnss = a.getParamGrowthRate("evptrns", key)
+    evlandr, evlands = a.getParamGrowthRate("evland", key)
+
+    # get parameters last sevent days values for graphs (point level tab)
+    t2mInfo = a.getParamLastSevenDaysValues("t2m", key)
+    prectotcorrInfo = a.getParamLastSevenDaysValues("prectotcorr", key)
+    ws2mInfo = a.getParamLastSevenDaysValues("ws2m", key)
+    evptrnsInfo = a.getParamLastSevenDaysValues("evptrns", key)
+    evlandInfo = a.getParamLastSevenDaysValues("evland", key)
+
+    t2mCI = a.getParamConditionIndexValue(key)
+    t2mMinVal, t2mMinDate = s.calcMin(key, "t2m")
+    t2mMaxVal, t2mMaxDate = s.calcMax(key, "t2m")
 
     return render_template('dashboard/analysis.html',
                            rlat = lat,
-                           rlon = lon
-                        #    dt = dt
+                           rlon = lon,
+                           countryCode = code,
+                           LastDate = a.todayDate,
+                           t2mlu = t2mlu,
+                           prectotcorrlu = prectotcorrlu,
+                           ws2mlu = ws2mlu,
+                           evptrnslu = evptrnslu,
+                           evlandlu = evlandlu,
+
+                           t2m = t2m,
+                           prectotcorr = prectotcorr,
+                           ws2m = ws2m,
+                           evptrns = evptrns,
+                           evland = evland,
+
+                           t2mr = t2mr,
+                           prectotcorrr = prectotcorrr,
+                           ws2mr = ws2mr,
+                           evptrnsr = evptrnsr,
+                           evlandr = evlandr,
+
+                           t2ms = t2ms,
+                           prectotcorrs = prectotcorrs,
+                           ws2ms = ws2ms,
+                           evptrnss = evptrnss,
+                           evlands = evlands,
+
+                           t2mInfo = t2mInfo,
+                           prectotcorrInfo = prectotcorrInfo,
+                           ws2mInfo = ws2mInfo,
+                           evptrnsInfo = evptrnsInfo,
+                           evlandInfo = evlandInfo,
+
+                           t2mCI = t2mCI,
+
+                           t2mMinVal = t2mMinVal,
+                           t2mMinDate = t2mMinDate,
+                           t2mMaxVal = t2mMaxVal,
+                           t2mMaxDate = t2mMaxDate,
                         )
 
 

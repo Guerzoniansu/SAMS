@@ -3,14 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dash | Home</title>
+    <title>Dash | Analysis</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
     
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/easy-pie-chart/2.1.6/jquery.easypiechart.min.js"></script>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/analysis.css') }}">
 </head>
 <body>
     <nav class="sidebar opened">
@@ -149,7 +153,7 @@
             </div>
             <a href="/dashboard/analysis?lat={{rlat}}&lon={{rlon}}&key=data&year=2020&tech=R&crop=rice" class="item home" status="selected">
                 <div class="icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M240-200h120v-240h240v240h120v-360L480-740 240-560v360Zm-80 80v-480l320-240 320 240v480H520v-240h-80v240H160Zm320-350Z"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M400-640v-200h360q33 0 56.5 23.5T840-760v120H400ZM200-120q-33 0-56.5-23.5T120-200v-360h200v440H200Zm-80-520v-120q0-33 23.5-56.5T200-840h120v200H120ZM520-80 360-240l160-160 56 56-62 64h86q33 0 56.5-23.5T680-360v-88l-64 64-56-56 160-160 160 160-56 56-64-64v88q0 66-47 113t-113 47h-86l62 64-56 56Z"/></svg>
                 </div>
                 <div class="text">
                     Analysis
@@ -169,9 +173,414 @@
             </div>
         </header>
         <section class="content">
-            {{dt}}
+            <div class="cards">
+                <div class="card first">
+                    <div class="subcard point">
+                        <div class="head">
+                            <p class="text">Point Level</p>
+                            <div class="other">
+                                <p class="countrycode">{{countryCode}}</p>
+                                <p class="separator">|</p>
+                                <p class="date">{{LastDate}}</p>
+                            </div>
+                        </div>
+                        <div class="cont">
+                            <div class="subcont first">
+                                <div class="subcont-card">
+                                    <p class="text">Temperature</p>
+                                    <div class="val">
+                                        <p class="lastupdate">{{t2mlu}}</p>
+                                        <p class="rate" state="{{t2ms}}">{{t2mr}} <span>%</span></p>
+                                    </div>
+                                    <p class="number">{{t2m}} <span>°C</span></p>
+                                    <div class="graph">
+                                        <canvas class="point-graph" id="t2m_growth" height="45px"></canvas>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="subcont-card">
+                                    <p class="text">Precipitation</p>
+                                    <div class="val">
+                                        <p class="lastupdate">{{prectotcorrlu}}</p>
+                                        <p class="rate" state="{{prectotcorrs}}">{{prectotcorrr}} <span>%</span></p>
+                                    </div>
+                                    <p class="number">{{prectotcorr}} <span>mm/day</span></p>
+                                    <div class="graph">
+                                        <canvas class="point-graph" id="prectotcorr_growth" height="45px"></canvas>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="subcont-card">
+                                    <p class="text">Wind Speed</p>
+                                    <div class="val">
+                                        <p class="lastupdate">{{ws2mlu}}</p>
+                                        <p class="rate" state="{{ws2ms}}">{{ws2mr}} <span>%</span></p>
+                                    </div>
+                                    <p class="number">{{ws2m}} m/s</p>
+                                    <div class="graph">
+                                        <canvas class="point-graph" id="ws2m_growth" height="45px"></canvas>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="subcont-card">
+                                    <p class="text">Evapotranspiration</p>
+                                    <div class="val">
+                                        <p class="lastupdate">{{evptrnslu}}</p>
+                                        <p class="rate" state="{{evptrnss}}">{{evptrnsr}} <span>%</span></p>
+                                    </div>
+                                    <p class="number">{{evptrns}} <span>MJ/m²day</span></p>
+                                    <div class="graph">
+                                        <canvas class="point-graph" id="evptrns_growth" height="45px"></canvas>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="subcont-card">
+                                    <p class="text">Evaporation</p>
+                                    <div class="val">
+                                        <p class="lastupdate">{{evlandlu}}</p>
+                                        <p class="rate" state="{{evlands}}">{{evlandr}} <span>%</span></p>
+                                    </div>
+                                    <p class="number">{{evland}} <span>kg/m²/s</span></p>
+                                    <div class="graph">
+                                        <canvas class="point-graph" id="evland_growth" height="45px"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="subcont second">
+                                <div class="subcont-card">
+                                    <p class="text">Temperature Condition Index</p>
+                                    <div class="elmts">
+                                        <div class="elmts-child">
+                                            <div class="tci-chart" data-percent="{{ t2mCI | safe }}" data-scale-color="#ffb400">{{ t2mCI | safe }}%</div>
+                                        </div>
+                                        <div class="elmts-child hist">
+                                            <p class="title">History</p>
+                                            <table class="history">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Min</th>
+                                                        <th>Max</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>{{t2mMinVal}}</td>
+                                                        <td>{{t2mMaxVal}}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>{{t2mMinDate}}</td>
+                                                        <td>{{t2mMaxDate}}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="subcont-card">
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="subcard country">
+
+                    </div>
+                </div>
+                <div class="card second">
+                    <div class="subcard">
+
+                    </div>
+                </div>
+            </div>
+            <div class="cards">
+
+            </div>
         </section>
     </section>
+    <script>
+        var ctx = document.querySelector("#t2m_growth").getContext("2d");
+
+        var data = {
+            labels: {{ t2mInfo["labels"] | tojson }},
+            datasets: [{
+                data: {{ t2mInfo["values"] | tojson }},
+                borderColor: "rgb(117, 186, 255)",
+                backgroundColor: 'rgba(117, 186, 255, 0.15)',
+                fill: true,
+                pointBackgroundColor: 'rgb(117, 186, 255)',
+                pointBorderWidth: 0,
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.1,
+            }]
+        };
+
+        var config = {
+            type: 'line',
+            data: data,
+            options: {
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            display: false
+                        },
+                        borderColor: 'white',
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            display: false
+                        },
+                        borderColor: '#ffffff',
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                responsive: true,
+            }
+        };
+
+        var pointChart = new Chart(ctx, config)
+    </script>
+    <script>
+        var ctx = document.querySelector("#prectotcorr_growth").getContext("2d");
+
+        data = {
+            labels: {{ prectotcorrInfo["labels"] | tojson }},
+            datasets: [{
+                data: {{ prectotcorrInfo["values"] | tojson }},
+                borderColor: "rgb(117, 186, 255)",
+                backgroundColor: 'rgba(117, 186, 255, 0.15)',
+                fill: true,
+                pointBackgroundColor: 'rgb(117, 186, 255)',
+                pointBorderWidth: 0,
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.1,
+            }]
+        };
+
+        config = {
+            type: 'line',
+            data: data,
+            options: {
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            display: false
+                        },
+                        borderColor: 'white',
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            display: false
+                        },
+                        borderColor: '#ffffff',
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                responsive: true,
+            }
+        };
+
+        var pointChart = new Chart(ctx, config)
+    </script>
+    <script>
+        var ctx = document.querySelector("#ws2m_growth").getContext("2d");
+
+        data = {
+            labels: {{ ws2mInfo["labels"] | tojson }},
+            datasets: [{
+                data: {{ ws2mInfo["values"] | tojson }},
+                borderColor: "rgb(117, 186, 255)",
+                backgroundColor: 'rgba(117, 186, 255, 0.15)',
+                fill: true,
+                pointBackgroundColor: 'rgb(117, 186, 255)',
+                pointBorderWidth: 0,
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.1,
+            }]
+        };
+
+        config = {
+            type: 'line',
+            data: data,
+            options: {
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            display: false
+                        },
+                        borderColor: 'white',
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            display: false
+                        },
+                        borderColor: '#ffffff',
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                responsive: true,
+            }
+        };
+
+        var pointChart = new Chart(ctx, config)
+    </script>
+    <script>
+        var ctx = document.querySelector("#evptrns_growth").getContext("2d");
+
+        data = {
+            labels: {{ evptrnsInfo["labels"] | tojson }},
+            datasets: [{
+                data: {{ evptrnsInfo["values"] | tojson }},
+                borderColor: "rgb(117, 186, 255)",
+                backgroundColor: 'rgba(117, 186, 255, 0.15)',
+                fill: true,
+                pointBackgroundColor: 'rgb(117, 186, 255)',
+                pointBorderWidth: 0,
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.1,
+            }]
+        };
+
+        config = {
+            type: 'line',
+            data: data,
+            options: {
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            display: false
+                        },
+                        borderColor: 'white',
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            display: false
+                        },
+                        borderColor: '#ffffff',
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                responsive: true,
+            }
+        };
+
+        var pointChart = new Chart(ctx, config)
+    </script>
+    <script>
+        var ctx = document.querySelector("#evland_growth").getContext("2d");
+
+        data = {
+            labels: {{ evlandInfo["labels"] | tojson }},
+            datasets: [{
+                data: {{ evlandInfo["values"] | tojson }},
+                borderColor: "rgb(117, 186, 255)",
+                backgroundColor: 'rgba(117, 186, 255, 0.15)',
+                fill: true,
+                pointBackgroundColor: 'rgb(117, 186, 255)',
+                pointBorderWidth: 0,
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.1,
+            }]
+        };
+
+        config = {
+            type: 'line',
+            data: data,
+            options: {
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            display: false
+                        },
+                        borderColor: 'white',
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            display: false
+                        },
+                        borderColor: '#ffffff',
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                responsive: true,
+            }
+        };
+
+        var pointChart = new Chart(ctx, config)
+    </script>
+    <script>
+        $(function() {
+            $('.tci-chart').easyPieChart({
+                size: 300,
+                barColor: "hsl(348, 80%, 50%)",
+                scaleLength: 0,
+                lineWidth: 50,
+                trackColor: "hsl(0, 0%, 97%)",
+                lineCap: "circle",
+                animate: 1500,
+            });
+        });
+    </script>
     <script src="{{ url_for('static', filename='js/dash/home.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dash/analysis.js') }}"></script>
 </body>
 </html>

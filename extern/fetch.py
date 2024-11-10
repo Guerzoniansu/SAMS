@@ -6,9 +6,9 @@
 # Thus, we will be collecting the data in several shots if necessary
 # Be aware of the fact that we are using the Agroclimatology (AG) as default community for data requests
 
-import requests
+import requests # For HTTP Requests on Power larc NASA
 import pandas as pd
-from pymongo import MongoClient
+from pymongo import MongoClient # MongoDB Atlas
 import numpy as np
 from datetime import date, timedelta
 import geopandas as gpd
@@ -45,7 +45,7 @@ param = [
 params = ','.join(param[:])
 
 password = quote_plus("mongodbatlasBlessing16@#")
-uri = f"mongodb+srv://alagbehamid:{password}@sams.9s76z.mongodb.net/?retryWrites=true&w=majority&appName=sams"
+uri = f"mongodb+srv://alagbehamid:{password}@sams.9s76z.mongodb.net/?retryWrites=true&w=majority&appName=sams" # mongodb connection string
 client = MongoClient(uri)
 db = client['sams']
 wsCol = db['wsCollection']
@@ -56,13 +56,21 @@ end = date.today() - timedelta(days=2)
 end = end.strftime("%Y%m%d")
 url = 'https://power.larc.nasa.gov/api/temporal/daily/point?parameters={}&community=RE&longitude={}&latitude={}&start={}&end={}&format=JSON&header=false'
 
-dtDict: dict = {}
-coords = [None, None]
+dtDict: dict = {} # dict for storing climate data from power larc used in single point (lat, lon) query
+coords = [None, None] # coordinates
 
 
-world = gpd.read_file("ws/world-administrative-boundaries.shp", encoding="ISO-8859-1")
+world = gpd.read_file("ws/world-administrative-boundaries.shp", encoding="ISO-8859-1") # file to identify countries
 
 def getPointData(lat: float, lon: float):
+    """
+        params:
+            lat: float,
+            lon: float,
+        returns:
+            data: dict[str, Any]
+        Gets data on Power Larc NASA for the query point and returns it as dictionnary
+    """
     r = requests.get(url.format(params, lon, lat, start, end))
     data = {
         "lat": lat,
@@ -73,21 +81,47 @@ def getPointData(lat: float, lon: float):
     return data
 
 def getCachedData(lat, lon):
+    """
+        params:
+            lat: float,
+            lon: float,
+        returns:
+            data: dict[str, Any]
+        Search for already known data for query point in MongoDB Atlas Collection
+    """
     data = wsCol.find_one({"lat": lat, "lon": lon})
     return data
 
 def getCountryFromPoint(lat: float, lon: float, year: str):
+    """
+        params:
+            lat: float,
+            lon: float,
+            year: str
+        returns:
+            str|list[str]
+        Get country name or iso3 code using world shapefile
+    """
     point = gpd.GeoDataFrame(geometry=[Point(lon, lat)], crs="EPSG:4326")
     country = world[world.contains(point.iloc[0].geometry)]
-    if year == "2010":
+    if year == "2010": # for differences in column names in databases 2010 and 2020
         return country["iso3"].iloc[0]
     else:
         return [country["i_3166_"].iloc[0], country["name"].iloc[0]]
 
 
-urlS3 = "https://sams-s3.s3.us-east-1.amazonaws.com/{}"
+urlS3 = "https://sams-s3.s3.us-east-1.amazonaws.com/{}" # API URL for making requests
 
 def getKey(var: str, tech: str, year: str):
+    """
+        params:
+            var: str,
+            tech: str,
+            year: str
+        returns:
+            str
+        Returns the key to the corresponding csv file we want to load
+    """
     if year == "2005":
         if var != "physicalArea":
             key = os.path.join(var, tech, f"spam{year}V3r2_global_{var[0].upper()}_T{tech}.csv")
@@ -111,8 +145,15 @@ def getKey(var: str, tech: str, year: str):
             return key
 
 def getKeyData(key: str):
+    """
+        params:
+            key: str
+        returns:
+            str|StringIO
+        return the path (for local computing) or object (for s3 computation)
+    """
     lPath = os.path.join(os.getcwd(), "files", key)
-    if os.path.isfile(lPath):
+    if os.path.isfile(lPath): # path exists locally
         return lPath
     else:
         obj = requests.get(urlS3.format(key))
@@ -120,12 +161,23 @@ def getKeyData(key: str):
 
 
 def getCountryData(lat: float, lon: float, var: str, tech: str, year: str, type: str = "country"):
+    """
+        params:
+            lat: float,
+            lon: float,
+            var: str,
+            tech: str,
+            year: str,
+            type: str = "country"
+        returns:
+            pd.Dataframe
+    """
     if type == "country":
         chunks = []
         key = getKey(var, tech, year)
         for chunk in pd.read_csv(getKeyData(key), chunksize=10000, encoding="ISO-8859-1"):
-            if year == "2010":
-                filtered = chunk[chunk["iso3"] == getCountryFromPoint(lat, lon, year)]
+            if year == "2010": # columns iso3 in 2010 mapspam dataset
+                filtered = chunk[chunk["iso3"] == getCountryFromPoint(lat, lon, year)] # filter for country data only
             else:
                 filtered = chunk[(chunk["FIPS0"] == getCountryFromPoint(lat, lon, year)[0]) | (chunk["ADM0_NAME"] == getCountryFromPoint(lat, lon, year)[1])]
             chunks.append(filtered)
@@ -139,6 +191,17 @@ def getCountryData(lat: float, lon: float, var: str, tech: str, year: str, type:
 
 
 def getCoordsPointCountry(lat: float, lon: float, var: str, tech: str, year: str, crops: str):
+    """
+        params:
+            lat: float,
+            lon: float,
+            var: str,
+            tech: str,
+            year: str,
+            crop: str
+        returns:
+            pd.Dataframe
+    """
     cropsT = f"{crops.lower()}_{tech.lower()}" if crops else []
     dt = getCountryData(lat, lon, var, tech, year)
     dt.columns = dt.columns.str.lower()

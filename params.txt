@@ -1,0 +1,41 @@
+Parameters									Abbreviation
+All Sky Insolation Clearness Index						ALLSKY_KT
+All Sky Surface Albedo								ALLSKY_SRF_ALB
+All Sky Surface Longwave Downward Irradiance					ALLSKY_SFC_LW_DWN
+All Sky Surface Longwave Upward Irradiance					ALLSKY_SFC_LW_UP
+All Sky Surface PAR Total							ALLSKY_SFC_PAR_TOT
+All Sky Surface Shortwave Downward Irradiance					ALLSKY_SFC_SW_DWN
+All Sky Surface Shortwave Upward Irradiance					ALLSKY_SFC_SW_UP
+All Sky Surface UV Index							ALLSKY_SFC_UV_INDEX
+All Sky Surface UVA Irradiance							ALLSKY_SFC_UVA
+All Sky Surface UVB Irradiance							ALLSKY_SFC_UVB
+Clear Sky Day									CLRSKY_DAYS
+Clear Sky Surface Albedo							CLRSKY_SRF_ALB
+Clear Sky Surface Longwave Downward Irradiance					CLRSKY_SFC_LW_DWN
+Clear Sky Surface Longwave Upward Irradiance					CLRSKY_SFC_LW_UP
+Clear Sky Surface PAR Total							CLRSKY_SFC_PAR_TOT
+Clear Sky Surface Shortwave Downward Irradiance					CLRSKY_SFC_SW_DWN
+Clear Sky Surface Shortwave Upward Irradiance					CLRSKY_SFC_SW_UP
+Cloud Amount									CLOUD_AMT
+Cloud Amount at Daytime								CLOUD_AMT_DAY
+Cloud Amount at Nighttime							CLOUD_AMT_NIGHT
+Corrected Atmospheric Pressure (Adjusted For Site Elevation)			PSC
+Corrected Wind Speed (Adjusted For Elevation)					WSC
+Earth Skin Temperature								TS
+Eastward Wind at 2 Meters							U2M
+Evaporation Land								EVLAND
+Evapotranspiration Energy Flux							EVPTRNS
+Northward Wind at 2 Meters							V2M
+Precipitable Water								PW
+Precipitation Corrected								PRECTOTCORR
+Profile Soil Moisture								GWETPROF
+Relative Humidity at 2 Meters							RH2M
+Root Zone Soil Wetness								GWETROOT
+Specific Humidity at 2 Meters							QV2M
+Surface Air Density								RHOA
+Surface Pressure								PS
+Surface Roughness								Z0M
+Surface Soil Wetness								GWETTOP
+Temperature at 2 Meters								T2M
+Wind Direction at 2 Meters							WD2M
+Wind Speed at 2 Meters								WS2M
