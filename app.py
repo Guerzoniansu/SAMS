@@ -1267,6 +1267,9 @@ def loadDashAnalysisBoard():
     t2mMinVal, t2mMinDate = s.calcMin(key, "t2m")
     t2mMaxVal, t2mMaxDate = s.calcMax(key, "t2m")
 
+    mcap = a.getMeanAnnualPrecipitation(key)
+    mSumPrecip = a.getMonthlyPrecipitationData(key)
+
     return render_template('dashboard/analysis.html',
                            rlat = lat,
                            rlon = lon,
@@ -1308,6 +1311,9 @@ def loadDashAnalysisBoard():
                            t2mMinDate = t2mMinDate,
                            t2mMaxVal = t2mMaxVal,
                            t2mMaxDate = t2mMaxDate,
+
+                           mcap = mcap,
+                           mSumPrecip = mSumPrecip
                         )
 
 

@@ -32,18 +32,18 @@
     /*Additional colors*/
     --color1: #57efc4;
     --color2: hsl(180, 74%, 72%);
-    --color3: hsl(210, 100%, 73%);
+    --color3: rgb(117, 186, 255);
     --color4: hsl(244, 98%, 80%);
     --color5: hsl(198, 19%, 89%);
     --color6: hsl(168, 100%, 36%);
-    --color7: hsl(179, 100%, 40%);
-    --color8: #0984e1;
+    --color7: rgb(0, 204, 201);
+    --color8: rgb(9, 132, 225);
     --color9: rgb(108, 92, 230);
     --color10: hsl(198, 12%, 73%);
     --color11: hsl(46, 100%, 83%);
     --color12: hsl(11, 90%, 80%);
     --color13: hsl(0, 100%, 73%);
-    --color14: hsl(339, 97%, 73%);
+    --color14: hsl(339, 96%, 73%);
     --color15: hsl(196, 7%, 42%);
     --color16: hsl(39, 97%, 71%);
     --color17: #e17256;

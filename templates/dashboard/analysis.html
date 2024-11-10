@@ -264,8 +264,8 @@
                                                 </thead>
                                                 <tbody>
                                                     <tr>
-                                                        <td>{{t2mMinVal}}</td>
-                                                        <td>{{t2mMaxVal}}</td>
+                                                        <td>{{t2mMinVal}} °C</td>
+                                                        <td>{{t2mMaxVal}} °C</td>
                                                     </tr>
                                                     <tr>
                                                         <td>{{t2mMinDate}}</td>
@@ -277,7 +277,11 @@
                                     </div>
                                 </div>
                                 <div class="subcont-card">
-                                    
+                                    <p class="text">Mean Annual Precipitation</p>
+                                    <p class="val">{{mcap}} mm/year</p>
+                                    <div class="graph">
+                                        <canvas id="monthprecipitation-chart" height="55px"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -578,6 +582,39 @@
                 lineCap: "circle",
                 animate: 1500,
             });
+        });
+    </script>
+    <script>
+        var ctx = document.getElementById('monthprecipitation-chart').getContext('2d');
+        var pointChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                datasets: [{
+                    label: 'Monthly Values',
+                    data: {{ mSumPrecip | safe }},
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                        position: 'top'
+                    }
+                }
+            }
         });
     </script>
     <script src="{{ url_for('static', filename='js/dash/home.js') }}"></script>

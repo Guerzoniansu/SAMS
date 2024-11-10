@@ -55,5 +55,23 @@ def getParamConditionIndexValue(key: str, param: str = "t2m"):
     return round(100 * val)
 
 
+def getMeanAnnualPrecipitation(key: str, param: str = "prectotcorr"):
+    start = "19950101"
+    dt = dtm.transform(key)[[param.upper()]]
+    end = f"{dt.index[-1].year - 1}1231"
+    dt = dt.loc[start:end].dropna(subset=[param.upper()])
+    dt = dt.resample("Y").sum()
+    return round(dt.mean().iloc[0], 2)
+
+def getMonthlyPrecipitationData(key: str, param: str = "prectotcorr"):
+    dt = dtm.transform(key)[[param.upper()]]
+    end = f"{dt.index[-1].year - 1}1231"
+    dt = dt.loc[:end].dropna(subset=[param.upper()])
+    nbYear = dt.index.year.nunique()
+    dt["month"] = dt.index.month
+    vals = ((dt.groupby("month")[param.upper()].sum())/nbYear).tolist()
+    return vals
+
+
 
 
