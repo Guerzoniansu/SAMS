@@ -5,4 +5,4 @@ vhp/
 datasets/
 clim/
 __pycache__/
-rainfall.txt
+./rainfall.txt
