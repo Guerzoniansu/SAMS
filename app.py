@@ -1263,12 +1263,26 @@ def loadDashAnalysisBoard():
     evptrnsInfo = a.getParamLastSevenDaysValues("evptrns", key)
     evlandInfo = a.getParamLastSevenDaysValues("evland", key)
 
+    # get temperature condition index part elements
     t2mCI = a.getParamConditionIndexValue(key)
     t2mMinVal, t2mMinDate = s.calcMin(key, "t2m")
     t2mMaxVal, t2mMaxDate = s.calcMax(key, "t2m")
 
+    # get mean annual precipitation and monthly precipitation for chart js graph display
     mcap = a.getMeanAnnualPrecipitation(key)
     mSumPrecip = a.getMonthlyPrecipitationData(key)
+
+    # get precipitation suitability for general agriculture
+    pei = a.getPrecipitationEffectivenessIndex(key)
+    climateType = a.getClimateTypeFromPei(pei)
+
+    # get HTML table of crops factors
+    # kcTable = a.getCropFactorsTable()
+    
+    # get soil params history mean
+    soilParams = a.getSoilParamAgriSuitability(key)
+    # get precipitation suitability for general agriculture
+    prectotcorrAgriSuitability = a.getPrecipitationSuitabilityAgriculture(key)
 
     return render_template('dashboard/analysis.html',
                            rlat = lat,
@@ -1313,7 +1327,15 @@ def loadDashAnalysisBoard():
                            t2mMaxDate = t2mMaxDate,
 
                            mcap = mcap,
-                           mSumPrecip = mSumPrecip
+                           mSumPrecip = mSumPrecip,
+
+                           pei = pei,
+                           climateType = climateType,
+                        #    kcTable = kcTable
+                           gwetprofAgriSuitability = soilParams[0],
+                           gwetrootAgriSuitability = soilParams[1],
+                           gwettopAgriSuitability = soilParams[2],
+                           prectotcorrAgriSuitability = prectotcorrAgriSuitability
                         )
 
 

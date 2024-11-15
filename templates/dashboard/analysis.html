@@ -276,12 +276,75 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="subcont-card">
-                                    <p class="text">Mean Annual Precipitation</p>
-                                    <p class="val">{{mcap}} mm/year</p>
+                                <div class="subcont-card precip">
+                                    <table class="recap">
+                                        <thead>
+                                            <tr>
+                                                <th>Mean Annual Precipitation</th>
+                                                <th>Precipitation Effectiveness Index</th>
+                                                <th>Climate</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{{mcap}} mm/year</td>
+                                                <td>{{pei}}</td>
+                                                <td>{{climateType}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                     <div class="graph">
                                         <canvas id="monthprecipitation-chart" height="55px"></canvas>
                                     </div>
+                                </div>
+                            </div>
+                            <div class="subcont third">
+                                <div class="detail">
+                                    <p class="text">Precipitation & Soil Suitability for Agriculture</p>
+                                    <table>
+                                        <tbody>
+                                            <tr>
+                                                <td>Profile Soil Moisture</td>
+                                                <td>{{gwetprofAgriSuitability}} %</td>
+                                                <td>
+                                                    <div class="progress-bar">
+                                                        <div class="progress-fill" data-percent="{{ gwetprofAgriSuitability }}" style="width: {{gwetprofAgriSuitability}}%;"></div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Root Zone Soil Wetness</td>
+                                                <td>{{gwetrootAgriSuitability}} %</td>
+                                                <td>
+                                                    <div class="progress-bar">
+                                                        <div class="progress-fill" data-percent="{{ gwetrootAgriSuitability }}" style="width: {{gwetrootAgriSuitability}}%;"></div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Surface Soil Wetness</td>
+                                                <td>{{gwettopAgriSuitability}} %</td>
+                                                <td>
+                                                    <div class="progress-bar">
+                                                        <div class="progress-fill" data-percent="{{ gwettopAgriSuitability }}" style="width: {{gwettopAgriSuitability}}%;"></div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Precipitation</td>
+                                                <td>{{prectotcorrAgriSuitability}} %</td>
+                                                <td>
+                                                    <div class="progress-bar">
+                                                        <div class="progress-fill" data-percent="{{ prectotcorrAgriSuitability }}" style="width: {{prectotcorrAgriSuitability}}%;"></div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="general">
+                                    <p class="text">Overall Suitability</p>
+                                    <p class="val">{{ 0.125 * gwetprofAgriSuitability + 0.25 * gwetrootAgriSuitability + 0.125 * gwettopAgriSuitability + 0.5 * prectotcorrAgriSuitability | round(2)}}%</p>
                                 </div>
                             </div>
                         </div>
@@ -291,13 +354,18 @@
                     </div>
                 </div>
                 <div class="card second">
+                    <div class="subcard point">
+                        <div class="head">
+                            <p class="text">Crop Planting Date & Water Needs</p>
+                        </div>
+                        <div class="cont">
+                            <!-- {{ kcTable | safe }} -->
+                        </div>
+                    </div>
                     <div class="subcard">
 
                     </div>
                 </div>
-            </div>
-            <div class="cards">
-
             </div>
         </section>
     </section>
@@ -591,7 +659,7 @@
             data: {
                 labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
                 datasets: [{
-                    label: 'Monthly Values',
+                    label: 'Precipitation',
                     data: {{ mSumPrecip | safe }},
                     backgroundColor: 'rgba(75, 192, 192, 0.6)',
                     borderColor: 'rgba(75, 192, 192, 1)',

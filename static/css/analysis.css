@@ -547,6 +547,288 @@ body {
     padding: 3px;
 }
 
+.card.first .subcard.point .cont .subcont.second .subcont-card.precip.precip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.card.first .subcard.point .cont .subcont.second .subcont-card.precip table {
+    text-align: center;
+    color: var(--dark-grey);
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.card.first .subcard.point .cont .subcont.second .subcont-card.precip table thead {
+    border-bottom: 3px solid var(--color13);
+}
+
+.card.first .subcard.point .cont .subcont.second .subcont-card.precip table thead tr {
+    text-align: center;
+}
+
+.card.first .subcard.point .cont .subcont.second .subcont-card.precip table thead tr th {
+    width: 33%;
+}
+
+.card.first .subcard.point .cont .subcont.second .subcont-card.precip table tbody tr {
+    text-align: center;
+    padding: 3px;
+    border-bottom: 1px solid var(--color10);
+}
+
+.card.first .subcard.point .cont .subcont.second .subcont-card.precip table tbody tr td {
+    font-size: 1.2rem;
+    color: var(--color9);
+}
+
+.card.first .subcard.point .cont .subcont.second .subcont-card.precip .graph {
+    width: 100%;
+}
+
+.card.first .subcard.point .cont .subcont.third {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.card.first .subcard.point .cont .subcont.third .detail {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    width: 80%;
+}
+
+.card.first .subcard.point .cont .subcont.third .text {
+    font-size: 14px;
+    font-weight: 500;
+    padding: 3px 8px;
+    width: 100%;
+    text-align: left;
+}
+
+.card.first .subcard.point .cont .subcont.third table {
+    width: 100%;
+    border: none;
+    border-collapse: collapse;
+}
+
+.card.first .subcard.point .cont .subcont.third table thead {
+    border-bottom: 3px solid var(--color13);
+}
+
+.card.first .subcard.point .cont .subcont.third table th,
+.card.first .subcard.point .cont .subcont.third table td {
+    border: none;
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.card.first .subcard.point .cont .subcont.third table th {
+    text-align: left;
+    font-size: 16px;
+    font-weight: 400;
+}
+
+.card.first .subcard.point .cont .subcont.third table td {
+    font-size: 13px;
+    font-weight: 300;
+}
+
+.card.first .subcard.point .cont .subcont.third table td:first-child,
+.card.first .subcard.point .cont .subcont.third table th:first-child {
+    width: 30%;
+}
+
+.card.first .subcard.point .cont .subcont.third table tbody tr {
+    width: 100%;
+    /* border-bottom: 1px solid  var(--color10); */
+}
+
+.card.first .subcard.point .cont .subcont.third table tbody tr td:first-child {
+    padding: 1px 5px;
+    text-align: start;
+    width: 30%;
+}
+
+.card.first .subcard.point .cont .subcont.third table tbody tr td:nth-child(2) {
+    padding: 1px 5px;
+    text-align: start;
+    width: 10%;
+}
+
+.card.first .subcard.point .cont .subcont.third table tbody tr td {
+    padding: 1px 5px;
+    text-align: start;
+}
+
+.card.first .subcard.point .cont .subcont.third table tbody tr td .progress-bar {
+    width: 100%;
+    height: 5px;
+    background: var(--color5);
+    border-radius: 10px;
+    overflow: hidden;
+    /* border: 1px solid var(--color10); */
+}
+
+.card.first .subcard.point .cont .subcont.third table tbody tr td .progress-bar .progress-fill {
+    /* width: 75%; */
+    height: 5px;
+    background: var(--color18);
+    /* border-radius: 10px; */
+}
+
+.card.first .subcard.point .cont .subcont.third .general {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    width: 20%;
+}
+
+.card.first .subcard.point .cont .subcont.third .general  .val {
+    font-size: 1.5rem;
+    color: var(--color9);
+}
+
+/* ######################################### */
+
+.main .content .cards .card.second {
+    width: 100%;
+    display: grid;
+    grid-template-rows: 2fr 3fr;
+    gap: 25px;
+}
+
+.card.second .subcard {
+    width: 100%;
+    height: 100%;
+    background: var(--white);
+    border-radius: 5px;
+    padding: 5px 10px;
+}
+
+.card.second .subcard.point {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    background: var(--white);
+    border-radius: 5px;
+    padding: 2px 5px;
+}
+
+.card.second .subcard.point .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    border-bottom: 1px solid var(--row-hover);
+}
+
+.card.second .subcard.point .head .text {
+    padding: 5px 0px 2px 0px;
+    font-size: 15px;
+    font-weight: 700;
+    border-bottom: 5px solid var(--color9);
+    margin-left: 18px;
+}
+
+.card.second .subcard.point .head .other {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 18px;
+}
+
+.card.second .subcard.point .head .other .countrycode {
+    color: var(--color7);
+}
+
+.card.second .subcard.point .head .other .separator {
+    margin: 0 8px;
+}
+
+.card.second .subcard.point .head .other .date {
+    color: var(--dark-grey);
+}
+
+.card.second .subcard.point .cont {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    padding: 2px 8px;
+    max-height: 300px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.card.second .subcard.point .cont::-webkit-scrollbar {
+    display: none;
+}
+
+.card.second .subcard.point .cont table {
+    width: 100%;
+    border: none;
+    border-collapse: collapse;
+}
+
+.card.second .subcard.point .cont table thead {
+    border-bottom: 3px solid var(--color13);
+}
+
+.card.second .subcard.point .cont table th,
+.card.second .subcard.point .cont table td {
+    border: none;
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.card.second .subcard.point .cont table th {
+    text-align: left;
+    font-size: 16px;
+    font-weight: 400;
+}
+
+.card.second .subcard.point .cont table td {
+    font-size: 13px;
+    font-weight: 300;
+}
+
+.card.second .subcard.point .cont table td:first-child,
+.card.second .subcard.point .cont table th:first-child {
+    width: 30%;
+}
+
+.card.second .subcard.point .cont table tbody tr {
+    width: 100%;
+    border-bottom: 1px solid  var(--color10);
+}
+
+.card.second .subcard.point .cont table tbody tr td {
+    padding: 1px 5px;
+    text-align: start;
+}
+
+
+
+
+
+
 
 
 

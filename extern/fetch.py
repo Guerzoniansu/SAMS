@@ -75,6 +75,7 @@ def getPointData(lat: float, lon: float):
     data = {
         "lat": lat,
         "lon": lon,
+        "date": date.today().strftime("%Y%m%d"),
         "data": r.json()
     }
     wsCol.insert_one(data)
@@ -89,7 +90,7 @@ def getCachedData(lat, lon):
             data: dict[str, Any]
         Search for already known data for query point in MongoDB Atlas Collection
     """
-    data = wsCol.find_one({"lat": lat, "lon": lon})
+    data = wsCol.find_one({"lat": lat, "lon": lon, "date": date.today().strftime("%Y%m%d")})
     return data
 
 def getCountryFromPoint(lat: float, lon: float, year: str):

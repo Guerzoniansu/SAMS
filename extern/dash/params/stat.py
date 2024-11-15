@@ -38,7 +38,7 @@ def foreCast(key: str, param: str, period: int):
     dt.rename(columns={param.upper(): 'y'}, inplace=True)
     model = models.get(f"model_{param.upper()}")
     if model is None:
-        model = Prophet()
+        model = Prophet(growth="flat", seasonality_mode = 'additive')
         model.fit(dt)
         models[f"model_{param.upper()}"] = model
     
