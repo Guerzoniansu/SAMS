@@ -30,16 +30,22 @@ def loadDashHome():
         lon = request.args.get('lon', default=None)
         lat = request.args.get('lat', default=None)
 
-    f.coords[0] = lat
-    f.coords[1] = lon
+    f.coords.append(lat)
+    f.coords.append(lat)
     data = f.getCachedData(lat, lon)
+    radiationData = f.getRadiationCachedData(lat, lon)
     if data:
         pass
     else:
         data = f.getPointData(lat, lon)
-    
+    if radiationData:
+        pass
+    else:
+        radiationData = f.getRadiationPointData(lat, lon)
+    f.coords.append(data["data"]["geometry"]["coordinates"][2])
     f.dtDict.clear()
     f.dtDict["data"] = data
+    f.dtDict["data_rad"] = radiationData
     return render_template('dashboard/home.html',rlon = lon, rlat = lat, lon=round(float(lon), 2), lat=round(float(lat), 2))
 
 @app.route(f'/dashboard/climate', methods=['GET','POST'])
@@ -1229,9 +1235,7 @@ def loadDashAnalysisBoard():
         lon = request.args.get('lon', default=None)
         lat = request.args.get('lat', default=None)
         key = request.args.get('key', default=None)
-        year = request.args.get('year', default=None)
-        tech = request.args.get('tech', default=None)
-        crop = request.args.get('crop', default=None)
+        key_rad = request.args.get('key_rad', default=None)
     
     code = a.getCountryCode(lat, lon) # get country code
 
@@ -1246,6 +1250,7 @@ def loadDashAnalysisBoard():
     t2m = a.getParamLastValue("t2m", key)
     prectotcorr = a.getParamLastValue("prectotcorr", key)
     ws2m = a.getParamLastValue("ws2m", key)
+    rh2m = a.getParamLastValue("rh2m", key)
     evptrns = a.getParamLastValue("evptrns", key)
     evland = a.getParamLastValue("evland", key)
 
@@ -1269,8 +1274,8 @@ def loadDashAnalysisBoard():
     t2mMaxVal, t2mMaxDate = s.calcMax(key, "t2m")
 
     # get mean annual precipitation and monthly precipitation for chart js graph display
-    mcap = a.getMeanAnnualPrecipitation(key)
-    mSumPrecip = a.getMonthlyPrecipitationData(key)
+    mcap = a.getMeanAnnualParam(key)
+    mSumPrecip = a.getMonthlyParamDataSum(key, param="prectotcorr")
 
     # get precipitation suitability for general agriculture
     pei = a.getPrecipitationEffectivenessIndex(key)
@@ -1283,6 +1288,20 @@ def loadDashAnalysisBoard():
     soilParams = a.getSoilParamAgriSuitability(key)
     # get precipitation suitability for general agriculture
     prectotcorrAgriSuitability = a.getPrecipitationSuitabilityAgriculture(key)
+
+    # get radiation data
+    # data = a.transformRadiationData(key_rad)
+
+    # get rh2m monthly levels
+    mMeanRh2m = a.getRadMonthlyParamDataMean(key_rad, param="rh2m")
+    # get ws2m monthly levels
+    mMeanWs2m = a.getRadMonthlyParamDataMean(key_rad, param="ws2m")
+
+    # get monthly ET0 levels
+    mSumEt0 = a.getRadMonthlyParamDataSum(key_rad, param="et0")
+
+    # get history ET0 data
+    # et0 = a.getHistoryET0Data(key_rad)
 
     return render_template('dashboard/analysis.html',
                            rlat = lat,
@@ -1298,6 +1317,7 @@ def loadDashAnalysisBoard():
                            t2m = t2m,
                            prectotcorr = prectotcorr,
                            ws2m = ws2m,
+                           rh2m = rh2m,
                            evptrns = evptrns,
                            evland = evland,
 
@@ -1335,7 +1355,10 @@ def loadDashAnalysisBoard():
                            gwetprofAgriSuitability = soilParams[0],
                            gwetrootAgriSuitability = soilParams[1],
                            gwettopAgriSuitability = soilParams[2],
-                           prectotcorrAgriSuitability = prectotcorrAgriSuitability
+                           prectotcorrAgriSuitability = prectotcorrAgriSuitability,
+                           mSumEt0 = mSumEt0, 
+                           mMeanRh2m = mMeanRh2m,
+                           mMeanWs2m = mMeanWs2m
                         )
 
 

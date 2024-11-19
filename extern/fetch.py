@@ -42,22 +42,33 @@ param = [
     'Z0M' # Surface Roughness
 ]
 
+
+paramET0 = [
+    'ALLSKY_SFC_SW_DWN', # Mean Daily solar radiation: All Sky surface shortwave downward irradiance
+    'ALLSKY_SFC_LW_UP', # All Sky surface longwave upward irradiance
+    'T2M_MIN', # Min Temperature at 2 meters
+    'T2M_MAX', # Max Temperature at 2 meters
+    'WS2M', # wind speed at 2 meters
+    'RH2M' # relative humidity at 2 meters
+]
+
 params = ','.join(param[:])
+paramsET0 = ','.join(paramET0[:])
 
 password = quote_plus("mongodbatlasBlessing16@#")
 uri = f"mongodb+srv://alagbehamid:{password}@sams.9s76z.mongodb.net/?retryWrites=true&w=majority&appName=sams" # mongodb connection string
 client = MongoClient(uri)
 db = client['sams']
 wsCol = db['wsCollection']
-agCol = db['agCollection']
+et0Col = db['et0Collection']
 
 start = "19950101"
-end = date.today() - timedelta(days=2)
+end = date.today()
 end = end.strftime("%Y%m%d")
-url = 'https://power.larc.nasa.gov/api/temporal/daily/point?parameters={}&community=RE&longitude={}&latitude={}&start={}&end={}&format=JSON&header=false'
+url = 'https://power.larc.nasa.gov/api/temporal/daily/point?parameters={}&community=AG&longitude={}&latitude={}&start={}&end={}&format=JSON&header=false'
 
 dtDict: dict = {} # dict for storing climate data from power larc used in single point (lat, lon) query
-coords = [None, None] # coordinates
+coords = [] # coordinates
 
 
 world = gpd.read_file("ws/world-administrative-boundaries.shp", encoding="ISO-8859-1") # file to identify countries
@@ -81,6 +92,25 @@ def getPointData(lat: float, lon: float):
     wsCol.insert_one(data)
     return data
 
+def getRadiationPointData(lat: float, lon: float):
+    """
+        params:
+            lat: float,
+            lon: float,
+        returns:
+            data: dict[str, Any]
+        Gets Radiation data on Power Larc NASA for the query point and returns it as dictionnary
+    """
+    r = requests.get(url.format(paramsET0, lon, lat, start, end))
+    data = {
+        "lat": lat,
+        "lon": lon,
+        "date": date.today().strftime("%Y%m%d"),
+        "data": r.json()
+    }
+    et0Col.insert_one(data)
+    return data
+
 def getCachedData(lat, lon):
     """
         params:
@@ -91,6 +121,18 @@ def getCachedData(lat, lon):
         Search for already known data for query point in MongoDB Atlas Collection
     """
     data = wsCol.find_one({"lat": lat, "lon": lon, "date": date.today().strftime("%Y%m%d")})
+    return data
+
+def getRadiationCachedData(lat, lon):
+    """
+        params:
+            lat: float,
+            lon: float,
+        returns:
+            data: dict[str, Any]
+        Search for already known data for query point in MongoDB Atlas Collection (typically for Radiation Data)
+    """
+    data = et0Col.find_one({"lat": lat, "lon": lon, "date": date.today().strftime("%Y%m%d")})
     return data
 
 def getCountryFromPoint(lat: float, lon: float, year: str):

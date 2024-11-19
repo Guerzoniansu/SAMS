@@ -151,7 +151,7 @@
                     </a>
                 </div>
             </div>
-            <a href="/dashboard/analysis?lat={{rlat}}&lon={{rlon}}&key=data&year=2020&tech=R&crop=rice" class="item home" status="selected">
+            <a href="/dashboard/analysis?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad" class="item home" status="selected">
                 <div class="icon">
                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M400-640v-200h360q33 0 56.5 23.5T840-760v120H400ZM200-120q-33 0-56.5-23.5T120-200v-360h200v440H200Zm-80-520v-120q0-33 23.5-56.5T200-840h120v200H120ZM520-80 360-240l160-160 56 56-62 64h86q33 0 56.5-23.5T680-360v-88l-64 64-56-56 160-160 160 160-56 56-64-64v88q0 66-47 113t-113 47h-86l62 64-56 56Z"/></svg>
                 </div>
@@ -349,18 +349,65 @@
                             </div>
                         </div>
                     </div>
-                    <div class="subcard country">
-
+                    <div class="subcard point">
+                        <div class="head">
+                            <p class="text">Crops Monitoring</p>
+                        </div>
+                        <div class="cont crop">
+                            <div class="subcont second">
+                                <div class="subcont-card recap">
+                                    <div class="subcard rh">
+                                        <div class="svg">
+                                            {% if rh2m > 80 %}
+                                                <svg xmlns="http://www.w3.org/2000/svg" height="32px" viewBox="0 -960 960 960" width="32px" fill="currentColor"><path d="M480-120q-124.69 0-212.34-86.12Q180-292.24 180-415.8q0-58.97 23.35-112.81 23.34-53.85 64.5-95.54L480-832.31l212.15 208.16q41.16 41.69 64.5 95.55Q780-474.74 780-415.72q0 123.64-87.66 209.68Q604.69-120 480-120Z"/></svg>
+                                            {% elif rh2m < 50 %}
+                                                <svg xmlns="http://www.w3.org/2000/svg" height="32px" viewBox="0 -960 960 960" width="32px" fill="currentColor"><path d="M480-120q-124.69 0-212.34-86.12Q180-292.24 180-415.8q0-58.97 23.35-112.81 23.34-53.85 64.5-95.54L480-832.31l212.15 208.16q41.16 41.69 64.5 95.55Q780-474.74 780-415.72q0 123.64-87.66 209.68Q604.69-120 480-120Zm0-60q100 0 170-68.31t70-167.39q0-47.05-18-89.58-18-42.54-52-74.57L480-748 310-579.85q-34 32.03-52 74.57-18 42.53-18 89.58 0 99.08 70 167.39Q380-180 480-180Z"/></svg>
+                                            {% else %}
+                                                <svg xmlns="http://www.w3.org/2000/svg" height="32px" viewBox="0 -960 960 960" width="32px" fill="currentColor"><path d="M480-100q-133 0-226.5-92T160-416q0-63 24.5-120.5T254-638l226-222 226 222q45 44 69.5 101.5T800-416q0 132-93.5 224T480-100ZM240-416h480q0-47-18-89.5T650-580L480-748 310-580q-34 32-52 74.5T240-416Z"/></svg>
+                                            {% endif %}
+                                        </div>
+                                        <div class="this">
+                                            <p class="text">Relative Humidity</p>
+                                            <p class="value">{{rh2m}} %</p>
+                                            {% if rh2m > 80 %}
+                                                <p class="appreciation">High Humidity</p>
+                                            {% elif rh2m < 50 %}
+                                                <p class="appreciation">Low Humidity</p>
+                                            {% else %}
+                                                <p class="appreciation">Mid Humidity</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="subcard ws">
+                                        <div class="svg">
+                                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M750-614q-27 27-62 41t-70 14q-35 0-69-13.5T488-614l-75-75q-15-15-34-22.5t-39-7.5q-20 0-39 7.5T267-689l-75 75-57-57 75-75q27-27 61-40.5t69-13.5q35 0 68.5 13.5T469-746l75 75q16 16 35 23.5t39 7.5q20 0 39.5-7.5T693-671l75-75 57 57-75 75Zm0 200q-27 27-61.5 40.5T619-360q-35 0-69.5-13.5T488-414l-75-75q-15-15-34-22.5t-39-7.5q-20 0-39 7.5T267-489l-75 75-57-56 75-76q27-27 61-40.5t69-13.5q35 0 68.5 13.5T469-546l75 75q16 16 35 23.5t39 7.5q20 0 39.5-7.5T693-471l75-75 57 57-75 75Zm-1 200q-27 27-61 40.5T619-160q-35 0-69.5-13.5T488-214l-76-75q-15-15-34-22.5t-39-7.5q-20 0-39 7.5T266-289l-75 75-56-56 75-76q27-27 61-40.5t69-13.5q35 0 68.5 13.5T469-346l75 75q16 16 35.5 23.5T619-240q20 0 39-7.5t35-23.5l75-75 56 57-75 75Z"/></svg>
+                                        </div>
+                                        <div class="this">
+                                            <p class="text">Wind Speed</p>
+                                            <p class="value">{{ws2m}} m/s</p>
+                                            {% if ws2m > 5 %}
+                                                <p class="appreciation">Strong Wind</p>
+                                            {% elif ws2m < 2 %}
+                                                <p class="appreciation">Weak Wind</p>
+                                            {% else %}
+                                                <p class="appreciation">Moderate Wind</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="subcont-card et0">
+                                    <p class="text">Reference Evapotranspiration (mm/month)</p>
+                                    <div class="graph">
+                                        <canvas id="monthly-et0_graph" height="70px"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="card second">
                     <div class="subcard point">
-                        <div class="head">
-                            <p class="text">Crop Planting Date & Water Needs</p>
-                        </div>
-                        <div class="cont">
-                            <!-- {{ kcTable | safe }} -->
-                        </div>
+                        
                     </div>
                     <div class="subcard">
 
@@ -663,6 +710,40 @@
                     data: {{ mSumPrecip | safe }},
                     backgroundColor: 'rgba(75, 192, 192, 0.6)',
                     borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    </script>
+
+    <script>
+        var ctx = document.getElementById('monthly-et0_graph').getContext('2d');
+        var pointChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                datasets: [{
+                    label: 'ET Reference',
+                    data: {{ mSumEt0 | safe }},
+                    backgroundColor: 'rgba(255, 117, 117, 0.75)',
+                    borderColor: 'rgba(255, 117, 117, 1)',
                     borderWidth: 1
                 }]
             },

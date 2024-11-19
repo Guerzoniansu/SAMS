@@ -7,7 +7,8 @@
 import os
 import pandas as pd
 import numpy as np
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
+import math
 
 from extern import fetch as f
 from extern.dash.dt import dtmaker as dtm
@@ -56,7 +57,7 @@ def getParamConditionIndexValue(key: str, param: str = "t2m"):
     return round(100 * val)
 
 
-def getMeanAnnualPrecipitation(key: str, param: str = "prectotcorr"):
+def getMeanAnnualParam(key: str, param: str = "prectotcorr"):
     start = "19950101"
     dt = dtm.transform(key)[[param.upper()]]
     end = f"{dt.index[-1].year - 1}1231"
@@ -64,7 +65,17 @@ def getMeanAnnualPrecipitation(key: str, param: str = "prectotcorr"):
     dt = dt.resample("Y").sum()
     return round(dt.mean().iloc[0], 2)
 
-def getMonthlyPrecipitationData(key: str, param: str = "prectotcorr"):
+
+def getMonthlyParamDataMean(key: str, param: str = "t2m"):
+    dt = dtm.transform(key)[[param.upper()]]
+    end = f"{dt.index[-1].year - 1}1231"
+    dt = dt.loc[:end].dropna(subset=[param.upper()])
+    dt["month"] = dt.index.month
+    vals = ((dt.groupby("month")[param.upper()].mean())).tolist()
+    return vals
+
+
+def getMonthlyParamDataSum(key: str, param: str = "prectotcorr"):
     dt = dtm.transform(key)[[param.upper()]]
     end = f"{dt.index[-1].year - 1}1231"
     dt = dt.loc[:end].dropna(subset=[param.upper()])
@@ -73,29 +84,37 @@ def getMonthlyPrecipitationData(key: str, param: str = "prectotcorr"):
     vals = ((dt.groupby("month")[param.upper()].sum())/nbYear).tolist()
     return vals
 
+# def getMonthlyPrecipitationData(key: str, param: str = "prectotcorr"):
+#     dt = dtm.transform(key)[[param.upper()]]
+#     end = f"{dt.index[-1].year - 1}1231"
+#     dt = dt.loc[:end].dropna(subset=[param.upper()])
+#     nbYear = dt.index.year.nunique()
+#     dt["month"] = dt.index.month
+#     vals = ((dt.groupby("month")[param.upper()].sum())/nbYear).tolist()
+#     return vals
+
 
 def getPrecipitationSuitabilityAgriculture(key: str, param: str = "prectotcorr"):
     dt = dtm.transform(key)[[param.upper()]].dropna(subset=[param.upper()])
-    p = getMeanAnnualPrecipitation(key, param)
+    p = getMeanAnnualParam(key, param)
     if p<0 or p>1200:
         return 0
     else:
         return round((1/3600)*p*(1200-p), 2)
-        
 
 
-def getMonthlyTemperatureData(key: str, param: str = "t2m"):
-    dt = dtm.transform(key)[[param.upper()]]
-    end = f"{dt.index[-1].year - 1}1231"
-    dt = dt.loc[:end].dropna(subset=[param.upper()])
-    dt["month"] = dt.index.month
-    vals = ((dt.groupby("month")[param.upper()].mean())).tolist()
-    return vals
+# def getMonthlyTemperatureData(key: str, param: str = "t2m"):
+#     dt = dtm.transform(key)[[param.upper()]]
+#     end = f"{dt.index[-1].year - 1}1231"
+#     dt = dt.loc[:end].dropna(subset=[param.upper()])
+#     dt["month"] = dt.index.month
+#     vals = ((dt.groupby("month")[param.upper()].mean())).tolist()
+#     return vals
 
 def getPrecipitationEffectivenessIndex(key: str):
-    monthPrecipitation = getMonthlyPrecipitationData(key)
+    monthPrecipitation = getMonthlyParamDataSum(key)
     monthPrecipitation = [p * 0.0393701 for p in monthPrecipitation]
-    monthTemperature = getMonthlyTemperatureData(key)
+    monthTemperature = getMonthlyParamDataMean(key, param="t2m")
     monthTemperature = [t * 9/5 + 32 for t in monthTemperature]
 
     peiMonth = [115 * ((p/(t - 10))**(10/9)) for p, t in zip(monthPrecipitation, monthTemperature)]
@@ -138,5 +157,45 @@ def getSoilParamAgriSuitability(key: str):
         else:
             vals[i] = round(-2500*(val-0.3)*(val-0.7), 2)
     return vals
+
+# def getHistoryET0Data(key: str, param: str = "et0"):
+#     dt = dtm.transformRadiationData(key)[[param.upper()]]
+#     info = {
+#         'labels': list(dt.index.strftime('%Y-%m-%d')),  # Only for labels (optional)
+#         'values': list(dt[param.upper()])
+#     }
+#     return info
+    
+
+
+def getRadMonthlyParamDataSum(key: str, param: str = "et0"):
+    dt = dtm.transformRadiationData(key)[[param.upper()]]
+    end = f"{dt.index[-1].year - 1}1231"
+    dt = dt.loc[:end].dropna(subset=[param.upper()])
+    nbYear = dt.index.year.nunique()
+    dt["month"] = dt.index.month
+    vals = ((dt.groupby("month")[param.upper()].sum())/nbYear).tolist()
+    return vals
+
+def getRadMonthlyParamDataMean(key: str, param: str = "rh2m"):
+    dt = dtm.transformRadiationData(key)[[param.upper()]]
+    end = f"{dt.index[-1].year - 1}1231"
+    dt = dt.loc[:end].dropna(subset=[param.upper()])
+    dt["month"] = dt.index.month
+    vals = ((dt.groupby("month")[param.upper()].mean())).tolist()
+    return vals
+
+
+# def getMonthlyParamData(key: str, param: str = "rh2m"):
+#     dt = dtm.transform(key)[[param.upper()]]
+#     end = f"{dt.index[-1].year - 1}1231"
+#     dt = dt.loc[:end].dropna(subset=[param.upper()])
+#     dt["month"] = dt.index.month
+#     vals = ((dt.groupby("month")[param.upper()].mean())).tolist()
+#     return vals
+
+
+
+    
 
 
