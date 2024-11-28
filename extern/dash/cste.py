@@ -15,7 +15,7 @@ crop_data = {
     # still unabling the user to enter the tgp (if he has that info)
 
     # planting date is also an issue when considering plant growth
-    # 
+
     'whea': {'mintgp': 120, 'maxtgp': 150, 'gsmin': [15, 25, 50, 30], 'gsmax': [15, 30, 65, 40], 'kc': [0.35, 0.75, 1.15, 0.45]},
     'rice': {'mintgp': 90, 'maxtgp': 150,'kc': {
         'transplanting': 1.1, # 60 first days

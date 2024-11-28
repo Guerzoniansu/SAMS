@@ -194,6 +194,12 @@ def getRadMonthlyParamDataMean(key: str, param: str = "rh2m"):
 #     vals = ((dt.groupby("month")[param.upper()].mean())).tolist()
 #     return vals
 
+def getCropIrrigationMonitoringTable():
+    dt = {
+        'Crops': ['Wheat', 'Rice', 'Maize', 'Pearl Millet', 'Small Millet', 'Sorghum', 'Potato', 'Sweet Potato'],
+        'code': ['whea', 'rice', 'maiz', 'pmil', 'smil', 'sorg', 'pota', 'swpo']
+    }
+
 
 
     

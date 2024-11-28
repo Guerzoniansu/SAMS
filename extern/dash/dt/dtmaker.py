@@ -23,6 +23,9 @@ def transform(key: str):
         df[param] = param_data
 
     df.replace(-999, np.nan, inplace=True)
+    if not os.path.exists("E:/SAMS/datasets/clim.xlsx"):
+        df.to_excel("E:/SAMS/datasets/clim.xlsx", index=True)
+    
     return df
 
 def getLastNDays(key: str, n: int = 30, dec: int = 0):
@@ -100,5 +103,8 @@ def transformRadiationData(key: str):
             lat=float(f.coords[0])
         )
     dt["ET0"] = dt.apply(calc, axis=1)
+    dt.replace(-999, np.nan, inplace=True)
+    if not os.path.exists("E:/SAMS/datasets/rad.xlsx"):
+        dt.to_excel("E:/SAMS/datasets/rad.xlsx", index=True)
     return dt
 

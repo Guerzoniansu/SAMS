@@ -6,3 +6,6 @@ datasets/
 clim/
 __pycache__/
 ./rainfall.txt
+soil/HWSD2_RASTER/
+soil/HWSD2_LAYERS/
+soil/data/

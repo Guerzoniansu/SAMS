@@ -1,0 +1,199 @@
+---
+title: "Loading HWSD Data"
+author: "Guerzoniansus"
+format: pdf
+editor: visual
+---
+
+
+```{r}
+rm(list = ls())
+```
+
+# Install packages
+
+```{r}
+# install.packages("sf")
+# install.packages("terra")
+# install.packages("readxl")
+```
+
+
+# Load packages
+
+```{r}
+require(sf)
+require(terra)
+library(readxl)
+library(dplyr)
+library(tidyr)
+```
+
+# Actions
+
+##  Task 1 : Download the HWSD v2.0 database
+ The HWSD is found at the FAO’s Global Agroecological Zoning (GAEZ) page. We do not use the HSWD Viewer on-line application, instead, we download the database and grid for use in R. Two compressed files are provided (Table 1):
+ You will not work directly with the MS Access database, rather, the SQLite conversion that is provided with these notes.
+ 
+## Task 2 : Uncompress the raster image HWSD2_raster.zip
+ This will create a subdirectory HWSD2_RASTER with four files: the band interleaved image (HWSD2.bil), a small file giving the extent and resolution (HWSD2.stx), the projection information (HWSD2.prj), , and the header (HWSD2.hdr). The latter two are automatically consulted on data import. This raster file is quite large, 1.74 Tb
+ 
+ 
+```{r}
+round(file.size("./HWSD2_RASTER/hwsd2.bil")/1024^3,2)
+file.mtime("./HWSD2_RASTER/hwsd2.bil")
+```
+ 
+```{r}
+hwsd <- rast("./HWSD2_RASTER/HWSD2.bil")
+print(hwsd)
+```
+
+```{r}
+names(hwsd)
+```
+
+
+
+```{r}
+class(hwsd); ncol(hwsd); nrow(hwsd); ncell(hwsd)
+res(hwsd); ext(hwsd)
+st_crs(hwsd)$proj4string
+```
+
+## All techs
+
+```{r}
+points <- read.csv("../datasets/I/spam2020V1r0_global_Y_TI.csv")
+```
+
+
+```{r}
+head(points)
+```
+
+
+```{r}
+points <- points %>% 
+  select(c(
+    x, y
+  ))
+```
+
+
+
+```{r}
+vec_points <- vect(points, geom = c("x", "y"), crs = crs(hwsd))
+```
+
+```{r}
+values <- terra::extract(hwsd, vec_points)
+```
+
+```{r}
+values <- cbind(points[, c("x", "y")], values)
+```
+
+
+```{r}
+ nrow(values); ncol(values)
+```
+```{r}
+dim(unique(values))
+```
+```{r}
+head(values)
+```
+
+
+
+
+
+```{r}
+#| echo: false
+#| warning: false
+
+
+# values[values == 7001] <- NA
+layers <- read_excel("./HWSD2_LAYERS/hwsd2_layers.xlsx")
+smu <- read_excel("./HWSD2_LAYERS/hwsd2_smu.xlsx")
+```
+
+```{r}
+layers[layers < 0] <- NA
+```
+
+
+
+```{r}
+layers <- layers %>%
+  select(where(is.numeric), LAYER, HWSD2_SMU_ID)
+```
+
+
+```{r}
+layers <- layers %>% 
+  select(-c(ID, COVERAGE, SEQUENCE, SHARE, ADD_PROP, HWSD1_SMU_ID, ROOT_DEPTH, PHASE1, PHASE2,
+    ROOTS, IL, SWR, AWC
+  ))
+```
+
+
+```{r}
+layers <- layers %>%
+  group_by(LAYER, HWSD2_SMU_ID) %>%
+  summarise(across(everything(), ~ mean(.x, na.rm = TRUE), .names = "{col}"))
+```
+
+
+```{r}
+layers[layers == "NaN"] <- NA
+
+layers <- layers %>% 
+  select(-c(TEXTURE_USDA))
+```
+
+
+```{r}
+layers_wide <- layers %>%
+  pivot_wider(
+    id_cols = c(HWSD2_SMU_ID), 
+    names_from = LAYER, 
+    values_from = all_of(names(layers)[!names(layers) %in% c("HWSD2_SMU_ID", "LAYER")]))
+```
+
+
+
+
+```{r}
+#smu <- smu %>% 
+  #select(c(
+    #ID, HWSD2_SMU_ID, COVERAGE, SHARE, WRB2_CODE, TEXTURE_USDA, REF_BULK_DENSITY, BULK_DENSITY,
+    #ROOT_DEPTH, AWC
+  #))
+```
+
+```{r}
+crop.layers <- merge(values, layers_wide, by.x = "HWSD2", by.y = "HWSD2_SMU_ID", all.x=TRUE)
+```
+
+
+```{r}
+write.csv(crop.layers, file = "data/hwsd2.csv", row.names = FALSE)
+```
+
+
+```{r}
+write.csv(layers_wide, file = "data/layers.csv", row.names = FALSE)
+```
+
+
+
+
+
+
+
+
+
+
+

@@ -524,7 +524,11 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 20%;
+    width: 25%;
+    height: 100%;
+    border-radius: 3px;
+    color: var(--white);
+    margin-right: 8px;
 }
 
 .card.first .subcard.point .cont.crop .subcont.second .subcont-card .subcard .this {
@@ -532,7 +536,7 @@ body {
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    width: 80%;
+    width: 75%;
 }
 
 .card.first .subcard.point .cont.crop .subcont.second .subcont-card .subcard .this * {
@@ -540,18 +544,50 @@ body {
 }
 
 .card.first .subcard.point .cont.crop .subcont.second .subcont-card .subcard.rh {
-    background: rgba(161, 154, 254, 0.8);
+    /* background: rgba(161, 154, 254, 0.8); */
     color: var(--black);
 }
 
+.card.first .subcard.point .cont.crop .subcont.second .subcont-card .subcard.rh .svg {
+    background: var(--color9);
+}
+
+.card.first .subcard.point .cont.crop .subcont.second .subcont-card .subcard.rh .value {
+    color: var(--color9);
+}
+
+.card.first .subcard.point .cont.crop .subcont.second .subcont-card .subcard.rh .appreciation {
+    text-align: center;
+}
+
+.card.first .subcard.point .cont.crop .subcont.second .subcont-card .subcard.ws .appreciation {
+    text-align: center;
+}
+
 .card.first .subcard.point .cont.crop .subcont.second .subcont-card .subcard.ws {
-    background: rgba(253, 203, 109, 0.8);
+    /* background: rgba(253, 203, 109, 0.8); */
     color: var(--black);
+}
+
+.card.first .subcard.point .cont.crop .subcont.second .subcont-card .subcard.ws .svg {
+    background: var(--color13);
+}
+
+.card.first .subcard.point .cont.crop .subcont.second .subcont-card .subcard.ws .value {
+    color: var(--color13);
 }
 
 .card.first .subcard.point .cont.crop .subcont.second .subcont-card .subcard .value {
     font-size: 1.4rem;
     font-weight: 500;
+    text-align: center;
+}
+
+.card.first .subcard.point .cont.crop .subcont.second .subcont-card .subcard .value span {
+    font-size: 1.2rem;
+    text-align: center;
+    margin-right: 5px;
+    color: var(--black);
 }
 
 .card.first .subcard.point .cont.crop .subcont.second .subcont-card .subcard .appreciation {
