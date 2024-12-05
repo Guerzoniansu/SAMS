@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dash | Landscape</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/easy-pie-chart/2.1.6/jquery.easypiechart.min.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/land.css') }}">
+</head>
+<body>
+    <nav class="sidebar opened">
+
+        <a href="/" class="logo_part">
+            <div class="logo">
+                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" width="30" height="30" viewBox="0 0 32 32" style="enable-background:new 0 0 32 32;" xml:space="preserve"><path d="M28.6,11.3V4.8c0-0.8-0.6-1.4-1.4-1.4h-6.5c-1.2,0-2.4,0.4-3.4,1c-0.5,0.3-0.9,0.7-1.3,1.2c-1.1-1.3-2.8-2.2-4.7-2.2H4.8  C4,3.4,3.4,4,3.4,4.8v6.5c0,1.9,0.9,3.5,2.2,4.7c-1.3,1.1-2.2,2.8-2.2,4.7v6.5c0,0.8,0.6,1.4,1.4,1.4h6.5c0.8,0,1.4-0.6,1.4-1.4  c0-0.8-0.6-1.4-1.4-1.4H6.2v-5.1c0-1.8,1.4-3.2,3.2-3.2h5.1v5.1c0,3.4,2.7,6.1,6.1,6.1h6.5c0.8,0,1.4-0.6,1.4-1.4v-6.5  c0-1.9-0.9-3.5-2.2-4.7C27.8,14.9,28.6,13.2,28.6,11.3z M9.5,14.6c-1.8,0-3.2-1.4-3.2-3.2V6.2h5.1c1.8,0,3.2,1.4,3.2,3.2v5.1H9.5z   M25.8,20.7v5.1h-5.1c-1.8,0-3.2-1.4-3.2-3.2v-5.1h5.1C24.3,17.4,25.8,18.9,25.8,20.7z M17.4,14.6V9.5c0-1.1,0.5-2.1,1.4-2.7  c0.5-0.4,1.2-0.6,1.8-0.6h5.1v5.1c0,1.8-1.4,3.2-3.2,3.2H17.4z" fill = "currentColor"/></svg>
+            </div>
+            <p class="logo_name">Acme</p>
+        </a>
+        <div class="pages">
+            <a href="/dashboard/home?lat={{rlat}}&lon={{rlon}}" class="item home" status="none">
+                <div class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M240-200h120v-240h240v240h120v-360L480-740 240-560v360Zm-80 80v-480l320-240 320 240v480H520v-240h-80v240H160Zm320-350Z"/></svg>
+                </div>
+                <div class="text">
+                    Home
+                </div>
+            </a>
+            <div class="item climate" list="closed">
+                <div class="d">
+                    <a href="/dashboard/climate?lat={{rlat}}&lon={{rlon}}&key=data&cOneDays=30" class="link">
+                        <div class="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M260-160q-91 0-155.5-63T40-377q0-78 47-139t123-78q25-92 100-149t170-57q117 0 198.5 81.5T760-520q69 8 114.5 59.5T920-340q0 75-52.5 127.5T740-160H260Zm0-80h480q42 0 71-29t29-71q0-42-29-71t-71-29h-60v-80q0-83-58.5-141.5T480-720q-83 0-141.5 58.5T280-520h-20q-58 0-99 41t-41 99q0 58 41 99t99 41Zm220-240Z"/></svg>
+                        </div>
+                        <div class="text">
+                            Climate
+                        </div>
+                    </a>
+                    <div class="chevron">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor"><path d="M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z"/></svg>
+                    </div>
+                </div>
+                <div class="l">
+                    <a href="/dashboard/climate/evland?lat={{rlat}}&lon={{rlon}}&key=data&startYear=1995&endYear=2024&groupBy=default&plotType=scatter&fcstDays=90" class="subitem">
+                        Evaporation Land
+                    </a>
+                    <a href="/dashboard/climate/evptrns?lat={{rlat}}&lon={{rlon}}&key=data&startYear=1995&endYear=2024&groupBy=default&plotType=scatter&fcstDays=90" class="subitem">
+                        Evapotranspiration Energy Flux
+                    </a>
+                    <a href="/dashboard/climate/ws2m?lat={{rlat}}&lon={{rlon}}&key=data&startYear=1995&endYear=2024&groupBy=default&plotType=scatter&fcstDays=90" class="subitem">
+                        Wind Speed
+                    </a>
+                    <a href="/dashboard/climate/t2m?lat={{rlat}}&lon={{rlon}}&key=data&startYear=1995&endYear=2024&groupBy=default&plotType=scatter&fcstDays=90" class="subitem">
+                        Temperature
+                    </a>
+                    <a href="/dashboard/climate/ts?lat={{rlat}}&lon={{rlon}}&key=data&startYear=1995&endYear=2024&groupBy=default&plotType=scatter&fcstDays=90" class="subitem">
+                        Earth Skin Temperature
+                    </a>
+                    <a href="/dashboard/climate/qv2m?lat={{rlat}}&lon={{rlon}}&key=data&startYear=1995&endYear=2024&groupBy=default&plotType=scatter&fcstDays=90" class="subitem">
+                        Specific Humidity
+                    </a>
+                    <a href="/dashboard/climate/rh2m?lat={{rlat}}&lon={{rlon}}&key=data&startYear=1995&endYear=2024&groupBy=default&plotType=scatter&fcstDays=90" class="subitem">
+                        Relative Humidity
+                    </a>
+                    <a href="/dashboard/climate/ps?lat={{rlat}}&lon={{rlon}}&key=data&startYear=1995&endYear=2024&groupBy=default&plotType=scatter&fcstDays=90" class="subitem">
+                        Surface Pressure
+                    </a>
+                    <a href="/dashboard/climate/wd2m?lat={{rlat}}&lon={{rlon}}&key=data&startYear=1995&endYear=2024&groupBy=default&plotType=scatter&fcstDays=90" class="subitem">
+                        Wind Direction
+                    </a>
+                    <a href="/dashboard/climate/cloud_amt_day?lat={{rlat}}&lon={{rlon}}&key=data&startYear=1995&endYear=2024&groupBy=default&plotType=scatter&fcstDays=90" class="subitem">
+                        Cloud Amount at Daylight
+                    </a>
+                    <a href="/dashboard/climate/pw?lat={{rlat}}&lon={{rlon}}&key=data&startYear=1995&endYear=2024&groupBy=default&plotType=scatter&fcstDays=90" class="subitem">
+                        Precipitable Water
+                    </a>
+                    <a href="/dashboard/climate/t2mdew?lat={{rlat}}&lon={{rlon}}&key=data&startYear=1995&endYear=2024&groupBy=default&plotType=scatter&fcstDays=90" class="subitem">
+                        Dew Frost Temperature
+                    </a>
+                    <a href="/dashboard/climate/frostdays?lat={{rlat}}&lon={{rlon}}&key=data&startYear=1995&endYear=2024&groupBy=default&plotType=scatter&fcstDays=90" class="subitem">
+                        Frost Days
+                    </a>
+                    <a href="/dashboard/climate/prectotcorr?lat={{rlat}}&lon={{rlon}}&key=data&startYear=1995&endYear=2024&groupBy=default&plotType=scatter&fcstDays=90" class="subitem">
+                        Precipitation Corrected
+                    </a>
+                </div>
+            </div>
+            <div class="item soil" list="closed">
+                <div class="d">
+                    <a href="/dashboard/soil?lat={{rlat}}&lon={{rlon}}&key=data&cOneDays=30" class="link">
+                        <div class="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm-40-82v-78q-33 0-56.5-23.5T360-320v-40L168-552q-3 18-5.5 36t-2.5 36q0 121 79.5 212T440-162Zm276-102q20-22 36-47.5t26.5-53q10.5-27.5 16-56.5t5.5-59q0-98-54.5-179T600-776v16q0 33-23.5 56.5T520-680h-80v80q0 17-11.5 28.5T400-560h-80v80h240q17 0 28.5 11.5T600-440v120h40q26 0 47 15.5t29 40.5Z"/></svg>
+                        </div>
+                        <div class="text">
+                            Soil
+                        </div>
+                    </a>
+                    <div class="chevron">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor"><path d="M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z"/></svg>
+                    </div>
+                </div>
+                <div class="l">
+                    <a href="/dashboard/soil/gwetprof?lat={{rlat}}&lon={{rlon}}&key=data&startYear=1995&endYear=2024&groupBy=default&plotType=scatter&fcstDays=90" class="subitem">
+                        Profile Soil Moisture
+                    </a>
+                    <a href="/dashboard/soil/gwetroot?lat={{rlat}}&lon={{rlon}}&key=data&startYear=1995&endYear=2024&groupBy=default&plotType=scatter&fcstDays=90" class="subitem">
+                        Root Zone Soil Wetness
+                    </a>
+                    <a href="/dashboard/soil/gwettop?lat={{rlat}}&lon={{rlon}}&key=data&startYear=1995&endYear=2024&groupBy=default&plotType=scatter&fcstDays=90" class="subitem">
+                        Surface Soil Wetness
+                    </a>
+                    <a href="/dashboard/soil/zom?lat={{rlat}}&lon={{rlon}}&key=data&startYear=1995&endYear=2024&groupBy=default&plotType=scatter&fcstDays=90" class="subitem">
+                        Surface Roughness
+                    </a>
+                </div>
+            </div>
+            <div class="item agri" list="closed">
+                <div class="d">
+                    <a href="#" class="link">
+                        <div class="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M160-600q-17 0-28.5-11.5T120-640q0-17 11.5-28.5T160-680h120q33 0 56.5 23.5T360-600H160Zm80 360q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Zm540 0q25 0 42.5-17.5T840-300q0-25-17.5-42.5T780-360q-25 0-42.5 17.5T720-300q0 25 17.5 42.5T780-240Zm-540-60q-25 0-42.5-17.5T180-360q0-25 17.5-42.5T240-420q25 0 42.5 17.5T300-360q0 25-17.5 42.5T240-300Zm560-139q26 5 43 13.5t37 27.5v-242q0-33-23.5-56.5T800-720H548l-42-44 56-56-28-28-142 142 30 28 56-56 42 42v92q0 33-23.5 56.5T440-520h-81q23 17 37 35t28 45h16q66 0 113-47t47-113v-40h200v201ZM641-320q6-27 14.5-43.5T682-400H436q4 23 4 40t-4 40h205Zm139 160q-58 0-99-41t-41-99q0-58 41-99t99-41q58 0 99 41t41 99q0 58-41 99t-99 41Zm-540 0q-83 0-141.5-58.5T40-360q0-83 58.5-141.5T240-560q83 0 141.5 58.5T440-360q0 83-58.5 141.5T240-160Zm393-360Z"/></svg>
+                        </div>
+                        <div class="text">
+                            Agriculture
+                        </div>
+                    </a>
+                    <div class="chevron">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor"><path d="M480-528 296-344l-56-56 240-240 240 240-56 56-184-184Z"/></svg>
+                    </div>
+                </div>
+                <div class="l">
+                    <a href="/dashboard/agri/parea?lat={{rlat}}&lon={{rlon}}&key=data&year=2020&tech=R&crop=whea" class="subitem">
+                        Physical Area
+                    </a>
+                    <a href="/dashboard/agri/harea?lat={{rlat}}&lon={{rlon}}&key=data&year=2020&tech=R&crop=whea" class="subitem">
+                        Harvested Area
+                    </a>
+                    <a href="/dashboard/agri/prod?lat={{rlat}}&lon={{rlon}}&key=data&year=2020&tech=R&crop=whea" class="subitem">
+                        Production
+                    </a>
+                    <a href="/dashboard/agri/yield?lat={{rlat}}&lon={{rlon}}&key=data&year=2020&tech=R&crop=whea" class="subitem">
+                        Yields
+                    </a>
+                </div>
+            </div>
+            <a href="/dashboard/analysis?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad&pd={{nyStart}}&crop=whea&tgp=max" class="item home" status="none">
+                <div class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M400-640v-200h360q33 0 56.5 23.5T840-760v120H400ZM200-120q-33 0-56.5-23.5T120-200v-360h200v440H200Zm-80-520v-120q0-33 23.5-56.5T200-840h120v200H120ZM520-80 360-240l160-160 56 56-62 64h86q33 0 56.5-23.5T680-360v-88l-64 64-56-56 160-160 160 160-56 56-64-64v88q0 66-47 113t-113 47h-86l62 64-56 56Z"/></svg>
+                </div>
+                <div class="text">
+                    Analysis
+                </div>
+            </a>
+            <a href="/dashboard/land?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad&imgd={{today}}" class="item home" status="selected">
+                <div class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m40-240 240-320 180 240h300L560-586 460-454l-50-66 150-200 360 480H40Zm521-80Zm-361 0h160l-80-107-80 107Zm0 0h160-160Z"/></svg>
+                </div>
+                <div class="text">
+                    Landscape
+                </div>
+            </a>
+            <a href="/dashboard/tasks?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad" class="item home" status="none">
+                <div class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m438-240 226-226-58-58-169 169-84-84-57 57 142 142ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z"/></svg>
+                </div>
+                <div class="text">
+                    Tasks
+                </div>
+            </a>
+        </div>
+    </nav>
+    <section class="main">
+        <header class="header">
+            <div class="left">
+                <div class="menu_icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </div>
+                <p class="text">
+                    Hide taskbar
+                </p>
+            </div>
+        </header>
+        <section class="content">
+            <div class="tasks">
+                <p class="text">MapDash</p>
+                <div class="dashexp">
+                    <select name="selParam" id="selectParam">
+                        <option value="arvi">ARVI</option>
+                        <option value="evi">EVI</option>
+                        <option value="nbr">NBR</option>
+                        <option value="ndvi">NDVI</option>
+                        <option value="gndvi">GNDVI</option>
+                        <option value="ndmi">NDMI</option>
+                        <option value="ndre">NDRE</option>
+                        <option value="reci">RECI</option>
+                        <option value="savi">SAVI</option>
+                        <option value="osavi">OSAVI</option>
+                        <option value="msavi">MSAVI</option>
+                        <option value="sipi">SIPI</option>
+                        <option value="gci">GCI</option>
+                        <option value="ndsi">NDSI</option>
+                    </select>
+                </div>
+            </div>
+            <div class="cont">
+                <div id="viewDiv">
+                    {{ iframe|safe }}
+                </div>
+                <div class="foot">
+                    <div class="head-cont">
+                        <div class="calendar">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="28px" viewBox="0 -960 960 960" width="28px" fill="currentColor"><path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Z"/></svg>
+                        </div>
+                        <input type="date" name="datePick" id="datePicker" onchange="update()">
+                    </div>
+                </div>
+            </div>
+        </section>
+    </section>
+    <script src="{{ url_for('static', filename='js/dash/home.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dash/land.js') }}"></script>
+</body>
+</html>

@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from bokeh.plotting import figure
 from bokeh.embed import components
+from datetime import date, timedelta
 
 
 from extern import fetch as f
@@ -12,8 +13,8 @@ from extern.dash.soil import statSoil as sts
 from extern.dash.soil import plotSoil as pts
 from extern.dash.params import stat as s
 from extern.dash.params import plot as p
-from extern.dash.dt import dtmaker as d
 from extern.dash import analysis as a
+from extern.dash import land as l
 
 app = Flask(__name__)
 
@@ -31,7 +32,7 @@ def loadDashHome():
         lat = request.args.get('lat', default=None)
 
     f.coords.append(lat)
-    f.coords.append(lat)
+    f.coords.append(lon)
     data = f.getCachedData(lat, lon)
     radiationData = f.getRadiationCachedData(lat, lon)
     if data:
@@ -46,7 +47,9 @@ def loadDashHome():
     f.dtDict.clear()
     f.dtDict["data"] = data
     f.dtDict["data_rad"] = radiationData
-    return render_template('dashboard/home.html',rlon = lon, rlat = lat, lon=round(float(lon), 2), lat=round(float(lat), 2))
+    nyStart = a.getNextYearStart(key="data")
+    today = date.today()
+    return render_template('dashboard/home.html',rlon = lon, rlat = lat, lon=round(float(lon), 2), lat=round(float(lat), 2), today = today, nyStart = nyStart)
 
 @app.route(f'/dashboard/climate', methods=['GET','POST'])
 def loadDashClimate():
@@ -1234,10 +1237,14 @@ def loadDashAnalysisBoard():
     else:
         lon = request.args.get('lon', default=None)
         lat = request.args.get('lat', default=None)
-        key = request.args.get('key', default=None)
-        key_rad = request.args.get('key_rad', default=None)
+        key = request.args.get('key', default="data")
+        key_rad = request.args.get('key_rad', default="data_rad")
+        pd =  request.args.get('pd', default="2025-01-01")
+        crop =  request.args.get('crop', default="whea")
+        tgp = request.args.get('tgp', default="max")
     
     code = a.getCountryCode(lat, lon) # get country code
+    today = date.today()
 
     # Get last parameters update date
     t2mlu = a.getParamLastUpdate("t2m", key)
@@ -1245,6 +1252,9 @@ def loadDashAnalysisBoard():
     ws2mlu = a.getParamLastUpdate("WS2M", key)
     evptrnslu = a.getParamLastUpdate("EVPTRNS", key)
     evlandlu = a.getParamLastUpdate("EVLAND", key)
+
+    # get next year start
+    nyStart = a.getNextYearStart(key=key)
 
     # Get parameters last value for those dates
     t2m = a.getParamLastValue("t2m", key)
@@ -1292,20 +1302,77 @@ def loadDashAnalysisBoard():
     # get radiation data
     # data = a.transformRadiationData(key_rad)
 
-    # get rh2m monthly levels
-    mMeanRh2m = a.getRadMonthlyParamDataMean(key_rad, param="rh2m")
-    # get ws2m monthly levels
-    mMeanWs2m = a.getRadMonthlyParamDataMean(key_rad, param="ws2m")
-
     # get monthly ET0 levels
     mSumEt0 = a.getRadMonthlyParamDataSum(key_rad, param="et0")
 
     # get history ET0 data
     # et0 = a.getHistoryET0Data(key_rad)
 
+    # get et0 fcst
+    #fcst = a.getParamCampaignForecast(key, param="prectotcorr", campaign="ny")
+
+    # get mintgp of crops
+    wheaMintgp = a.getCropTotalGrowthPeriod(crop="whea")
+    riceMintgp = a.getCropTotalGrowthPeriod(crop="rice")
+    maizMintgp = a.getCropTotalGrowthPeriod(crop="maiz")
+    pmilMintgp = a.getCropTotalGrowthPeriod(crop="pmil")
+    smilMintgp = a.getCropTotalGrowthPeriod(crop="smil")
+    sorgMintgp = a.getCropTotalGrowthPeriod(crop="sorg")
+    potaMintgp = a.getCropTotalGrowthPeriod(crop="pota")
+    swpoMintgp = a.getCropTotalGrowthPeriod(crop="swpo")
+
+    # get fstTableForBpd
+    fcstTableForBpd = a.getForecastsTableForBestPlantingDate()
+
+    # get cropdevelopment dataframe
+    table = a.createCropDevelopmentDataFrame(fcstTableForBpd, pd, crop, tgp=tgp)
+
+    # get stage time span
+    ipSpan = a.getStageStartAndEndDate(table, stage="ip")
+    cdpSpan = a.getStageStartAndEndDate(table, stage="cdp")
+    mssSpan = a.getStageStartAndEndDate(table, stage="mss")
+    lssSpan = a.getStageStartAndEndDate(table, stage="lss")
+
+    # get Month' water need and precipitation
+    wnStages = a.getParamByStage(table, 'water_need')
+    precStages = a.getParamByStage(table, 'prectotcorr')
+    wnMonth = a.getParamByMonth(table, 'water_need')
+    precMonth = a.getParamByMonth(table, 'prectotcorr')
+
+    eor = a.getEffectivenessOfRainfall(wnStages, precStages)
+
+    # get maxtgp of crops
+    wheaMaxtgp = a.getCropTotalGrowthPeriod(crop="whea", type='max')
+    riceMaxtgp = a.getCropTotalGrowthPeriod(crop="rice", type='max')
+    maizMaxtgp = a.getCropTotalGrowthPeriod(crop="maiz", type='max')
+    pmilMaxtgp = a.getCropTotalGrowthPeriod(crop="pmil", type='max')
+    smilMaxtgp = a.getCropTotalGrowthPeriod(crop="smil", type='max')
+    sorgMaxtgp = a.getCropTotalGrowthPeriod(crop="sorg", type='max')
+    potaMaxtgp = a.getCropTotalGrowthPeriod(crop="pota", type='max')
+    swpoMaxtgp = a.getCropTotalGrowthPeriod(crop="swpo", type='max')
+
+    # get best planting data of crops
+    wheaMinBestPd = a.getCropOptimalPlantingDate(dt=fcstTableForBpd, crop="whea")
+    maizMinBestPd = a.getCropOptimalPlantingDate(dt=fcstTableForBpd, crop="maiz")
+    pmilMinBestPd = a.getCropOptimalPlantingDate(dt=fcstTableForBpd, crop="pmil")
+    smilMinBestPd = a.getCropOptimalPlantingDate(dt=fcstTableForBpd, crop="smil")
+    sorgMinBestPd = a.getCropOptimalPlantingDate(dt=fcstTableForBpd, crop="sorg")
+    potaMinBestPd = a.getCropOptimalPlantingDate(dt=fcstTableForBpd, crop="pota")
+    swpoMinBestPd = a.getCropOptimalPlantingDate(dt=fcstTableForBpd, crop="swpo")
+
+    wheaMaxBestPd = a.getCropOptimalPlantingDate(dt=fcstTableForBpd, crop="whea", type="max")
+    maizMaxBestPd = a.getCropOptimalPlantingDate(dt=fcstTableForBpd, crop="maiz", type="max")
+    pmilMaxBestPd = a.getCropOptimalPlantingDate(dt=fcstTableForBpd, crop="pmil", type="max")
+    smilMaxBestPd = a.getCropOptimalPlantingDate(dt=fcstTableForBpd, crop="smil", type="max")
+    sorgMaxBestPd = a.getCropOptimalPlantingDate(dt=fcstTableForBpd, crop="sorg", type="max")
+    potaMaxBestPd = a.getCropOptimalPlantingDate(dt=fcstTableForBpd, crop="pota", type="max")
+    swpoMaxBestPd = a.getCropOptimalPlantingDate(dt=fcstTableForBpd, crop="swpo", type="max")
+
+
     return render_template('dashboard/analysis.html',
                            rlat = lat,
                            rlon = lon,
+                           today = today,
                            countryCode = code,
                            LastDate = a.todayDate,
                            t2mlu = t2mlu,
@@ -1346,6 +1413,8 @@ def loadDashAnalysisBoard():
                            t2mMaxVal = t2mMaxVal,
                            t2mMaxDate = t2mMaxDate,
 
+                           nyStart = nyStart,
+
                            mcap = mcap,
                            mSumPrecip = mSumPrecip,
 
@@ -1356,10 +1425,87 @@ def loadDashAnalysisBoard():
                            gwetrootAgriSuitability = soilParams[1],
                            gwettopAgriSuitability = soilParams[2],
                            prectotcorrAgriSuitability = prectotcorrAgriSuitability,
-                           mSumEt0 = mSumEt0, 
-                           mMeanRh2m = mMeanRh2m,
-                           mMeanWs2m = mMeanWs2m
+                           gSuitability = round(0.04 * soilParams[0] + 0.07 * soilParams[1] + 0.09 * soilParams[2] + 0.8 * prectotcorrAgriSuitability, 2),
+                           mSumEt0 = mSumEt0,
+
+                           wheaMintgp = wheaMintgp,
+                           riceMintgp = riceMintgp,
+                           maizMintgp = maizMintgp,
+                           pmilMintgp = pmilMintgp,
+                           smilMintgp = smilMintgp,
+                           sorgMintgp = sorgMintgp,
+                           potaMintgp = potaMintgp,
+                           swpoMintgp = swpoMintgp,
+
+                           wheaMaxtgp = wheaMaxtgp,
+                           riceMaxtgp = riceMaxtgp,
+                           maizMaxtgp = maizMaxtgp,
+                           pmilMaxtgp = pmilMaxtgp,
+                           smilMaxtgp = smilMaxtgp,
+                           sorgMaxtgp = sorgMaxtgp,
+                           potaMaxtgp = potaMaxtgp,
+                           swpoMaxtgp = swpoMaxtgp,
+
+                           wheaMinBestPd = wheaMinBestPd,
+                           maizMinBestPd = maizMinBestPd,
+                           pmilMinBestPd = pmilMinBestPd,
+                           smilMinBestPd = smilMinBestPd,
+                           sorgMinBestPd = sorgMinBestPd,
+                           potaMinBestPd = potaMinBestPd,
+                           swpoMinBestPd = swpoMinBestPd,
+
+                           wheaMaxBestPd = wheaMaxBestPd,
+                           maizMaxBestPd = maizMaxBestPd,
+                           pmilMaxBestPd = pmilMaxBestPd,
+                           smilMaxBestPd = smilMaxBestPd,
+                           sorgMaxBestPd = sorgMaxBestPd,
+                           potaMaxBestPd = potaMaxBestPd,
+                           swpoMaxBestPd = swpoMaxBestPd,
+
+                           ipSpan = ipSpan,
+                           cdpSpan = cdpSpan,
+                           mssSpan = mssSpan,
+                           lssSpan = lssSpan,
+
+                           wnStages = wnStages,
+                           precStages = precStages,
+                           wnMonth = wnMonth,
+                           precMonth = precMonth,
+
+                           eor = eor
                         )
+
+
+
+
+@app.route('/dashboard/land', methods=['GET','POST'])
+def loadDashLandscapeBoard():
+    if request.method == 'POST':
+        lon = request.form['lon']
+        lat = request.form['lat']
+    else:
+        lon = request.args.get('lon', default=None)
+        lat = request.args.get('lat', default=None)
+        key = request.args.get('key', default="data")
+        key_rad = request.args.get('key_rad', default="data_rad")
+        imgd = request.args.get('imgd', default=date.today().strftime("%Y-%m-%d"))
+
+    nyStart = a.getNextYearStart(key=key)
+    today = date.today()
+    one_week = pd.to_datetime(imgd) - timedelta(weeks=1)
+
+    aoi = l.getFieldBBox(lat, lon, res=10)
+    image = l.getImage(aoi, time_interval=(one_week.strftime("%Y-%m-%d"), imgd))
+    map = l.getMap(image, aoi)
+    iframe = map.get_root()._repr_html_()
+
+    return render_template('dashboard/land.html',
+                           rlat = lat,
+                           rlon = lon,
+                           nyStart = nyStart,
+                           today = today,
+                           iframe = iframe
+                           )
 
 
 

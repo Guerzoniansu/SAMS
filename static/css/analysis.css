@@ -485,6 +485,12 @@ body {
     flex-direction: column;
 }
 
+.card.first .subcard.point .cont.crop .selects {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
 .card.first .subcard.point .cont.crop .subcont.second {
     margin: 0;
 }
@@ -496,7 +502,6 @@ body {
 
 .card.first .subcard.point .cont.crop .subcont.second .subcont-card.recap {
     width: 100%;
-    height: 70px;
     display: grid;
     grid-template-rows: repeat(2, 1fr);
     gap: 5px;
@@ -504,11 +509,16 @@ body {
 
 .card.first .subcard.point .cont.crop .subcont.second .subcont-card.et0 {
     width: 100%;
-    height: 70px;
 }
 
 .card.first .subcard.point .cont.crop .subcont.second .subcont-card .text {
     font-size: 14px;
+    font-weight: 500;
+    padding: 3px 8px;
+}
+
+.card.first .subcard.point .cont.crop .subcont.second .subcont-card .text.dif {
+    font-size: 1.2rem;
     font-weight: 500;
     padding: 3px 8px;
 }
@@ -595,11 +605,29 @@ body {
     font-weight: 500;
 }
 
+.card.first .subcard.point .cont .subcont.second .subcont-card p.elmts {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    font-weight: 500;
+    padding: 3px 8px;
+    color: var(--color13);
+    width: 100%;
+    text-align: center;
+}
+
 .card.first .subcard.point .cont .subcont.second .subcont-card .elmts {
     display: grid;
     grid-template-columns: 1fr 2fr;
     gap: 4px;
     width: 100%;
+}
+
+.card.first .subcard.point .cont .subcont.second .subcont-card .elmts.stages {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .card.first .subcard.point .cont .subcont.second .subcont-card .elmts .elmts-child {
@@ -717,6 +745,70 @@ body {
     justify-content: center;
     flex-direction: column;
     width: 80%;
+}
+
+.card.first .subcard.point .cont .subcont.third .bdtable {
+    margin-top: 10px;
+    width: 96%;
+}
+
+.card.first .subcard.point .cont .subcont.third .bdtable .text {
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.card.first .subcard.point .cont .subcont.third .bdtable table {
+    width: 100%;
+    border: none;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.card.first .subcard.point .cont .subcont.third .bdtable table thead {
+    border-bottom: 3px solid var(--color9);
+}
+
+.card.first .subcard.point .cont .subcont.third .bdtable table th,
+.card.first .subcard.point .cont .subcont.third .bdtable table td {
+    border: none;
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.card.first .subcard.point .cont .subcont.third .bdtable table th {
+    text-align: left;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.card.first .subcard.point .cont .subcont.third .bdtable table tbody td {
+    font-size: 13px;
+    font-weight: 300;
+}
+
+.card.first .subcard.point .cont .subcont.third .bdtable table td:first-child,
+.card.first .subcard.point .cont .subcont.third .bdtable table th:first-child {
+    width: 30%;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.card.first .subcard.point .cont .subcont.third .bdtable table tbody tr {
+    width: 100%;
+    border-bottom: 1px solid var(--border);
+}
+
+.card.first .subcard.point .cont .subcont.third .bdtable table tbody tr td {
+    padding: 1px 5px;
+    text-align: center;
+}
+
+.card.first .subcard.point .cont .subcont.third .bdtable table tbody tr td:nth-child(2) {
+    padding: 1px 5px;
+    text-align: center;
 }
 
 .card.first .subcard.point .cont .subcont.third .text {

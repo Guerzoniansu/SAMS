@@ -147,12 +147,28 @@
                     </a>
                 </div>
             </div>
-            <a href="/dashboard/analysis?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad" class="item home" status="none">
+            <a href="/dashboard/analysis?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad&pd={{nyStart}}&crop=whea&tgp=max" class="item home" status="none">
                 <div class="icon">
                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M400-640v-200h360q33 0 56.5 23.5T840-760v120H400ZM200-120q-33 0-56.5-23.5T120-200v-360h200v440H200Zm-80-520v-120q0-33 23.5-56.5T200-840h120v200H120ZM520-80 360-240l160-160 56 56-62 64h86q33 0 56.5-23.5T680-360v-88l-64 64-56-56 160-160 160 160-56 56-64-64v88q0 66-47 113t-113 47h-86l62 64-56 56Z"/></svg>
                 </div>
                 <div class="text">
                     Analysis
+                </div>
+            </a>
+            <a href="/dashboard/land?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad&imgd={{today}}" class="item home" status="none">
+                <div class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m40-240 240-320 180 240h300L560-586 460-454l-50-66 150-200 360 480H40Zm521-80Zm-361 0h160l-80-107-80 107Zm0 0h160-160Z"/></svg>
+                </div>
+                <div class="text">
+                    Landscape
+                </div>
+            </a>
+            <a href="/dashboard/tasks?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad" class="item home" status="none">
+                <div class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m438-240 226-226-58-58-169 169-84-84-57 57 142 142ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z"/></svg>
+                </div>
+                <div class="text">
+                    Tasks
                 </div>
             </a>
         </div>

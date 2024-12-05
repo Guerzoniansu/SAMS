@@ -9,3 +9,5 @@ __pycache__/
 soil/HWSD2_RASTER/
 soil/HWSD2_LAYERS/
 soil/data/
+best_models_arima.txt
+copernicusaccess.txt

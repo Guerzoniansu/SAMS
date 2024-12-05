@@ -151,12 +151,28 @@
                     </a>
                 </div>
             </div>
-            <a href="/dashboard/analysis?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad" class="item home" status="selected">
+            <a href="/dashboard/analysis?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad&pd={{nyStart}}&crop=whea&tgp=max" class="item home" status="selected">
                 <div class="icon">
                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M400-640v-200h360q33 0 56.5 23.5T840-760v120H400ZM200-120q-33 0-56.5-23.5T120-200v-360h200v440H200Zm-80-520v-120q0-33 23.5-56.5T200-840h120v200H120ZM520-80 360-240l160-160 56 56-62 64h86q33 0 56.5-23.5T680-360v-88l-64 64-56-56 160-160 160 160-56 56-64-64v88q0 66-47 113t-113 47h-86l62 64-56 56Z"/></svg>
                 </div>
                 <div class="text">
                     Analysis
+                </div>
+            </a>
+            <a href="/dashboard/land?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad&imgd={{today}}" class="item home" status="none">
+                <div class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m40-240 240-320 180 240h300L560-586 460-454l-50-66 150-200 360 480H40Zm521-80Zm-361 0h160l-80-107-80 107Zm0 0h160-160Z"/></svg>
+                </div>
+                <div class="text">
+                    Landscape
+                </div>
+            </a>
+            <a href="/dashboard/tasks?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad" class="item home" status="none">
+                <div class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m438-240 226-226-58-58-169 169-84-84-57 57 142 142ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z"/></svg>
+                </div>
+                <div class="text">
+                    Tasks
                 </div>
             </a>
         </div>
@@ -344,7 +360,7 @@
                                 </div>
                                 <div class="general">
                                     <p class="text">Overall Suitability</p>
-                                    <p class="val">{{ 0.125 * gwetprofAgriSuitability + 0.25 * gwetrootAgriSuitability + 0.125 * gwettopAgriSuitability + 0.5 * prectotcorrAgriSuitability | round(2)}}%</p>
+                                    <p class="val">{{gSuitability}} %</p>
                                 </div>
                             </div>
                         </div>
@@ -368,7 +384,7 @@
                                         </div>
                                         <div class="this">
                                             <p class="text">Relative Humidity</p>
-                                            <p class="value"><span>Today:</span>{{rh2m}} %</p>
+                                            <p class="value"><span>Latest:</span>{{rh2m}} %</p>
                                             {% if rh2m > 80 %}
                                                 <p class="appreciation">High Humidity | Stronger KC</p>
                                             {% elif rh2m < 50 %}
@@ -384,7 +400,7 @@
                                         </div>
                                         <div class="this">
                                             <p class="text">Wind Speed</p>
-                                            <p class="value"><span>Today:</span>{{ws2m}} m/s</p>
+                                            <p class="value"><span>Latest:</span>{{ws2m}} m/s</p>
                                             {% if ws2m > 5 %}
                                                 <p class="appreciation">Strong Wind | Stronger KC</p>
                                             {% elif ws2m < 2 %}
@@ -402,6 +418,169 @@
                                     </div>
                                 </div>
                             </div>
+                            <!-- <div class="selects">
+                                <div class="campaign">
+                                    <p class="title">Campaign</p>
+                                    <select name="selectCampaign" id="selCampaign">
+                                        <option value="cy">Current Year</option>
+                                        <option value="ny" selected>Next Year</option>
+                                    </select>
+                                </div>
+                                <div class="type-plantation">
+                                    <p class="title">Type of plantation</p>
+                                    <select name="selectTop" id="selTop">
+                                        <option value="tr">Transplanted</option>
+                                        <option value="sw" selected>Sown</option>
+                                    </select>
+                                </div>
+                            </div> -->
+                            <div class="subcont third">
+                                <div class="bdtable">
+                                    <p class="text">Next Year Short Analysis</p>
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Crops</th>
+                                                <th>Wheat</th>
+                                                <th>Rice</th>
+                                                <th>Maize</th>
+                                                <th>Pearl Millet</th>
+                                                <th>Small Millet</th>
+                                                <th>Sorghum</th>
+                                                <th>Potato</th>
+                                                <th>Sweet Potato</th>
+                                            </tr>
+                                            <!-- <tr>
+                                                <td>whea</td>
+                                                <td>rice</td>
+                                                <td>maiz</td>
+                                                <td>pmil</td>
+                                                <td>smil</td>
+                                                <td>sorg</td>
+                                                <td>pota</td>
+                                                <td>swpo</td>
+                                            </tr> -->
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Minimum Total Growth Period (days)</td>
+                                                <td>{{ wheaMintgp }}</td>
+                                                <td>{{ riceMintgp }}</td>
+                                                <td>{{ maizMintgp }}</td>
+                                                <td>{{ pmilMintgp }}</td>
+                                                <td>{{ smilMintgp }}</td>
+                                                <td>{{ sorgMintgp }}</td>
+                                                <td>{{ potaMintgp }}</td>
+                                                <td>{{ swpoMintgp }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Best Planting Date (Min TGP)</td>
+                                                <td>{{ wheaMinBestPd }}</td>
+                                                <td></td>
+                                                <td>{{ maizMinBestPd }}</td>
+                                                <td>{{ pmilMinBestPd }}</td>
+                                                <td>{{ smilMinBestPd }}</td>
+                                                <td>{{ sorgMinBestPd }}</td>
+                                                <td>{{ potaMinBestPd }}</td>
+                                                <td>{{ swpoMinBestPd }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Maximum Total Growth Period (days)</td>
+                                                <td>{{ wheaMaxtgp }}</td>
+                                                <td>{{ riceMaxtgp }}</td>
+                                                <td>{{ maizMaxtgp }}</td>
+                                                <td>{{ pmilMaxtgp }}</td>
+                                                <td>{{ smilMaxtgp }}</td>
+                                                <td>{{ sorgMaxtgp }}</td>
+                                                <td>{{ potaMaxtgp }}</td>
+                                                <td>{{ swpoMaxtgp }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Best Planting Date (Max TGP)</td>
+                                                <td>{{ wheaMaxBestPd }}</td>
+                                                <td></td>
+                                                <td>{{ maizMaxBestPd }}</td>
+                                                <td>{{ pmilMaxBestPd }}</td>
+                                                <td>{{ smilMaxBestPd }}</td>
+                                                <td>{{ sorgMaxBestPd }}</td>
+                                                <td>{{ potaMaxBestPd }}</td>
+                                                <td>{{ swpoMaxBestPd }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="selects">
+                                <div class="item plantDate">
+                                    <p class="title">Planting Date</p>
+                                    <input type="date" name="selPd" id="selectPd">
+                                </div>
+                                <div class="item crop">
+                                    <p class="title">Crop</p>
+                                    <select name="selCrop" id="selectCrop">
+                                        <option value="whea" selected>Wheat</option>
+                                        <option value="rice">Rice</option>
+                                        <option value="maiz">Maize</option>
+                                        <option value="pmil">Pearl Millet</option>
+                                        <option value="smil">Small Millet</option>
+                                        <option value="sorg">Sorghum</option>
+                                        <option value="pota">Potato</option>
+                                        <option value="swpo">Sweet Potato</option>
+                                    </select>
+                                </div>
+                                <div class="item type">
+                                    <p class="title">Total Growth Period</p>
+                                    <select name="selType" id="selectType">
+                                        <option value="max" selected>Max</option>
+                                        <option value="min">Min</option>
+                                    </select>
+                                </div>
+                                <button type="button" onclick="update()">Submit</button>
+                            </div>
+                            <div class="subcont second">
+                                <div class="subcont-card">
+                                    <p class="text dif">Growth stages</p>
+                                    <div class="elmts stages">
+                                        <div class="elmts-child hist">
+                                            <table class="history">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Stage</th>
+                                                        <th>Time Span</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Initial phase</td>
+                                                        <td>{{ipSpan}}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Crop development phase</td>
+                                                        <td>{{cdpSpan}}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Middle season stage</td>
+                                                        <td>{{mssSpan}}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Late season stage</td>
+                                                        <td>{{lssSpan}}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <p class="text dif">Effectiveness of rainfall</p>
+                                    <p class="elmts eor">{{eor}} %</p>
+                                </div>
+                                <div class="subcont-card">
+                                    <canvas id="comp-prec-wn-stage_graph" height="80px"></canvas>
+                                    <canvas id="comp-prec-wn-month_graph" height="80px"></canvas>
+                                </div>
+                            </div>
+                            <div class="subcont">
+                                
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -416,6 +595,18 @@
             </div>
         </section>
     </section>
+    <!-- <script>
+        const currentYear = new Date().getFullYear();
+        const nextYear = currentYear + 1;
+
+        const minDate = `${nextYear}-01-01`;
+        const maxDate = `${nextYear}-12-31`;
+
+        const dateInput = document.getElementById("selPd");
+        dateInput.min = minDate;
+        dateInput.max = maxDate;
+        dateInput.value = minDate
+    </script> -->
     <script>
         var ctx = document.querySelector("#t2m_growth").getContext("2d");
 
@@ -760,6 +951,93 @@
                 plugins: {
                     legend: {
                         display: false,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    </script>
+
+    <script>
+        var ctx = document.querySelector("#comp-prec-wn-stage_graph").getContext("2d");
+
+        var pointChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ["Initial Phase", "Crop Development", "Middle Season", "Late Season"],
+                datasets: [
+                    {
+                        label: 'Water Need (mm/day)',
+                        data: {{ wnStages | safe }},
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Precipitation (mm/day)',
+                        data: {{ precStages | safe }},
+                        backgroundColor: 'rgba(108, 92, 230, 0.6)',
+                        borderColor: 'rgba(108, 92, 230, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true, // Display the legend for both datasets
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    </script>
+    <script>
+        var ctx = document.querySelector("#comp-prec-wn-month_graph").getContext("2d");
+
+        var pointChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ wnMonth["labels"] | tojson }},
+                datasets: [
+                    {
+                        label: 'Water Need (mm/day)',
+                        data: {{ wnMonth["values"] | safe }},
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Precipitation (mm/day)',
+                        data: {{ precMonth["values"] | safe }},
+                        backgroundColor: 'rgba(108, 92, 230, 0.6)',
+                        borderColor: 'rgba(108, 92, 230, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false, // Display the legend for both datasets
                         position: 'top'
                     }
                 }

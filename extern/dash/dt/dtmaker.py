@@ -23,8 +23,8 @@ def transform(key: str):
         df[param] = param_data
 
     df.replace(-999, np.nan, inplace=True)
-    if not os.path.exists("E:/SAMS/datasets/clim.xlsx"):
-        df.to_excel("E:/SAMS/datasets/clim.xlsx", index=True)
+    # if not os.path.exists("E:/SAMS/datasets/clim.xlsx"):
+    #     df.to_excel("E:/SAMS/datasets/clim.xlsx", index=True)
     
     return df
 
@@ -104,7 +104,7 @@ def transformRadiationData(key: str):
         )
     dt["ET0"] = dt.apply(calc, axis=1)
     dt.replace(-999, np.nan, inplace=True)
-    if not os.path.exists("E:/SAMS/datasets/rad.xlsx"):
-        dt.to_excel("E:/SAMS/datasets/rad.xlsx", index=True)
+    # if not os.path.exists("E:/SAMS/datasets/rad.xlsx"):
+    #     dt.to_excel("E:/SAMS/datasets/rad.xlsx", index=True)
     return dt
 
