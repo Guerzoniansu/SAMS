@@ -2,7 +2,9 @@
 .idea/
 files/
 vhp/
-datasets/
+datasets/*
+!datasets/ACP/
+!datasets/ACP/**
 clim/
 __pycache__/
 ./rainfall.txt
