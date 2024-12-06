@@ -18,11 +18,15 @@ from sentinelhub import (
     Geometry,
 )
 
+from datetime import datetime
+
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 
 
 from extern import utils
+from extern.dash import analysis as a
+from extern.dash import cste
 
 
 
@@ -798,10 +802,1100 @@ def getMap(image, aoi: list):
 
 
 
+def calculateCloudCover(aoi: list[float], time_interval: tuple, res: int = 10, cloud_threshold: int = 50) -> float:
+    """
+    Calculate the cloud cover percentage for a Sentinel-2 image over a given area of interest (AOI).
+    
+    Parameters:
+        aoi (list[float]): The bounding box of the area of interest [min_lon, min_lat, max_lon, max_lat].
+        time_interval (tuple): Date range for the image retrieval (e.g., ("2023-01-01", "2023-01-15")).
+        res (int): Spatial resolution of the image in meters per pixel (default: 10).
+        cloud_threshold (int): Cloud probability threshold percentage (default: 50%).
+    
+    Returns:
+        float: Cloud cover percentage.
+    """
+    from sentinelhub import BBox, CRS, bbox_to_dimensions, SentinelHubRequest, DataCollection, MimeType
+
+    # Define AOI and resolution
+    aoi_bbox = BBox(bbox=aoi, crs=CRS.WGS84)
+    aoi_size = bbox_to_dimensions(aoi_bbox, resolution=res)
+
+    # Evalscript to retrieve only the CLP (cloud probability) band
+    eval_script = """
+    //VERSION=3
+    function setup() {
+        return {
+            input: [{
+                bands: ["CLP"],
+                units: "DN"
+            }],
+            output: {
+                bands: 1,
+                sampleType: "FLOAT32"
+            }
+        };
+    }
+
+    function evaluatePixel(sample) {
+        return [sample.CLP / 255]; // Normalize CLP band to [0, 1]
+    }
+    """
+
+    # SentinelHub request for the CLP band
+    request = SentinelHubRequest(
+        evalscript=eval_script,
+        input_data=[
+            SentinelHubRequest.input_data(
+                data_collection=DataCollection.SENTINEL2_L2A.define_from(
+                    name="s2l2a", service_url="https://sh.dataspace.copernicus.eu"
+                ),
+                time_interval=time_interval,
+                other_args={"dataFilter": {"mosaickingOrder": "leastCC"}},
+            )
+        ],
+        responses=[SentinelHubRequest.output_response("default", MimeType.TIFF)],
+        bbox=aoi_bbox,
+        size=aoi_size,
+        config=config,
+    )
+
+    # Fetch the CLP data
+    clp_data = request.get_data()
+    cloud_probability = clp_data[0][:, :, 0]  # Extract the CLP band
+
+    # Calculate cloud cover percentage
+    total_pixels = cloud_probability.size
+    cloudy_pixels = (cloud_probability > cloud_threshold / 100).sum()
+    cloud_cover_percentage = (cloudy_pixels / total_pixels) * 100
+
+    return cloud_cover_percentage
 
 
 
 
+def getHtmlLegend(param: str):
+    if param == "default":
+        return """<p>Base map of your farm</p>"""
+    elif param == "arvi":
+        return """
+            <!DOCTYPE html>
+              <html lang="en">
+              <head>
+                  <meta charset="UTF-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <link rel="preconnect" href="https://fonts.googleapis.com">
+                  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+                  <style>
+                      .legend {
+                          font-size: 14px;
+                          font-family: 'Lato', sans-serif;
+                      }
+                      .legend-item {
+                          display: flex;
+                          align-items: center;
+                          margin-bottom: 5px;
+                      }
+                      .legend-color {
+                          width: 20px;
+                          height: 20px;
+                          margin-right: 10px;
+                          border: 1px solid #000;
+                      }
+                  </style>
+              </head>
+              <body>
+                  <div class="legend">
+                      <div class="legend-item">
+                          <div class="legend-color" style="background-color: rgb(0, 0, 0);"></div>
+                          <span>Very low ARVI: &lt; -0.5</span>
+                      </div>
+                      <div class="legend-item">
+                          <div class="legend-color" style="background-color: rgb(128, 128, 128);"></div>
+                          <span>Bare soil: -0.5 to -0.2</span>
+                      </div>
+                      <div class="legend-item">
+                          <div class="legend-color" style="background-color: rgb(255, 204, 153);"></div>
+                          <span>Sparse vegetation: -0.2 to 0.0</span>
+                      </div>
+                      <div class="legend-item">
+                          <div class="legend-color" style="background-color: rgb(255, 255, 102);"></div>
+                          <span>Moderately sparse vegetation: 0.0 to 0.2</span>
+                      </div>
+                      <div class="legend-item">
+                          <div class="legend-color" style="background-color: rgb(153, 230, 77);"></div>
+                          <span>Moderate vegetation: 0.2 to 0.4</span>
+                      </div>
+                      <div class="legend-item">
+                          <div class="legend-color" style="background-color: rgb(77, 179, 51);"></div>
+                          <span>Dense vegetation: 0.4 to 0.6</span>
+                      </div>
+                      <div class="legend-item">
+                          <div class="legend-color" style="background-color: rgb(26, 128, 26);"></div>
+                          <span>Very dense vegetation: 0.6 to 0.8</span>
+                      </div>
+                      <div class="legend-item">
+                          <div class="legend-color" style="background-color: rgb(0, 77, 0);"></div>
+                          <span>Extremely dense vegetation: &gt; 0.8</span>
+                      </div>
+                  </div>
+              </body>
+              </html>
+            """
+    elif param == "evi":
+        return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+  <style>
+      .legend {
+          font-size: 14px;
+          font-family: 'Lato', sans-serif;
+      }
+      .legend-item {
+          display: flex;
+          align-items: center;
+          margin-bottom: 5px;
+      }
+      .legend-color {
+          width: 20px;
+          height: 20px;
+          margin-right: 10px;
+          border: 1px solid #000;
+      }
+  </style>
+</head>
+<body>
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(0, 0, 0);"></div>
+            <span>Invalid or very low EVI: EVI &lt; -0.2</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(128, 128, 128);"></div>
+            <span>Bare soil: -0.2 ≤ EVI &lt; 0.0</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(255, 204, 153);"></div>
+            <span>Sparse vegetation: 0.0 ≤ EVI &lt; 0.2</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(204, 255, 128);"></div>
+            <span>Moderate vegetation: 0.2 ≤ EVI &lt; 0.4</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(102, 230, 102);"></div>
+            <span>Dense vegetation: 0.4 ≤ EVI &lt; 0.6</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(26, 179, 26);"></div>
+            <span>Very dense vegetation: 0.6 ≤ EVI &lt; 0.8</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(0, 102, 0);"></div>
+            <span>Extremely dense vegetation: EVI ≥ 0.8</span>
+        </div>
+    </div>
+</body>
+</html>
+
+"""
+    elif param == "lai":
+        return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        .legend {
+            font-size: 14px;
+            font-family: 'Lato', sans-serif;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(204, 204, 204);"></div>
+            <span>Bare soil: LAI &lt; 1</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(255, 230, 153);"></div>
+            <span>Sparse vegetation: 1 ≤ LAI &lt; 2</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(204, 255, 102);"></div>
+            <span>Moderate vegetation: 2 ≤ LAI &lt; 3</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(102, 230, 102);"></div>
+            <span>Dense vegetation: 3 ≤ LAI &lt; 4</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(26, 179, 26);"></div>
+            <span>Very dense vegetation: 4 ≤ LAI &lt; 5</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(0, 128, 0);"></div>
+            <span>Extremely dense vegetation: LAI ≥ 5</span>
+        </div>
+    </div>
+</body>
+</html>
+
+"""
+    elif param == "nbr":
+        return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        .legend {
+            font-size: 14px;
+            font-family: 'Lato', sans-serif;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(153, 102, 51);"></div>
+            <span>Burned areas: NBR &lt; -0.1</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(255, 204, 153);"></div>
+            <span>Bare soil or sparse vegetation: -0.1 ≤ NBR &lt; 0.1</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(204, 255, 128);"></div>
+            <span>Moderately healthy vegetation: 0.1 ≤ NBR &lt; 0.3</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(102, 230, 102);"></div>
+            <span>Healthy vegetation: 0.3 ≤ NBR &lt; 0.5</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(26, 179, 26);"></div>
+            <span>Very healthy vegetation: NBR ≥ 0.5</span>
+        </div>
+    </div>
+</body>
+</html>
+
+"""
+    elif param == "ndvi":
+        return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        .legend {
+            font-size: 14px;
+            font-family: 'Lato', sans-serif;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(128, 128, 128);"></div>
+            <span>Bare soil or non-vegetation: NDVI &lt; 0.0</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(255, 204, 153);"></div>
+            <span>Sparse vegetation: 0.0 ≤ NDVI &lt; 0.2</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(204, 255, 128);"></div>
+            <span>Moderate vegetation: 0.2 ≤ NDVI &lt; 0.4</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(102, 230, 102);"></div>
+            <span>Dense vegetation: 0.4 ≤ NDVI &lt; 0.6</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(26, 179, 26);"></div>
+            <span>Very dense vegetation: 0.6 ≤ NDVI &lt; 0.8</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(0, 102, 0);"></div>
+            <span>Extremely dense vegetation: NDVI ≥ 0.8</span>
+        </div>
+    </div>
+</body>
+</html>
+
+"""
+    elif param == "gndvi":
+        return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        .legend {
+            font-size: 14px;
+            font-family: 'Lato', sans-serif;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(128, 128, 128);"></div>
+            <span>Bare soil or sparse vegetation: GNDVI &lt; 0.2</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(255, 204, 153);"></div>
+            <span>Moderately sparse vegetation: 0.2 ≤ GNDVI &lt; 0.4</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(204, 255, 128);"></div>
+            <span>Moderate vegetation: 0.4 ≤ GNDVI &lt; 0.6</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(102, 230, 102);"></div>
+            <span>Dense vegetation: 0.6 ≤ GNDVI &lt; 0.8</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(26, 179, 26);"></div>
+            <span>Very dense vegetation: GNDVI ≥ 0.8</span>
+        </div>
+    </div>
+</body>
+</html>
+
+"""
+    elif param == "ndmi":
+        return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        .legend {
+            font-size: 14px;
+            font-family: 'Lato', sans-serif;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(102, 51, 26);"></div>
+            <span>Very low moisture: NDMI &lt; -0.2</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(153, 102, 51);"></div>
+            <span>Low moisture: -0.2 ≤ NDMI &lt; 0.0</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(204, 179, 102);"></div>
+            <span>Moderate moisture: 0.0 ≤ NDMI &lt; 0.2</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(102, 204, 102);"></div>
+            <span>Healthy vegetation: 0.2 ≤ NDMI &lt; 0.4</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(51, 153, 51);"></div>
+            <span>High moisture: 0.4 ≤ NDMI &lt; 0.6</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(26, 102, 26);"></div>
+            <span>Very high moisture: NDMI ≥ 0.6</span>
+        </div>
+    </div>
+</body>
+</html>
+
+"""
+    elif param == "ndre":
+        return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        .legend {
+            font-size: 14px;
+            font-family: 'Lato', sans-serif;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(102, 51, 26);"></div>
+            <span>Very low NDRE: NDRE &lt; -0.2</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(153, 102, 51);"></div>
+            <span>Low NDRE: -0.2 ≤ NDRE &lt; 0.0</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(255, 204, 102);"></div>
+            <span>Moderate vegetation: 0.0 ≤ NDRE &lt; 0.2</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(153, 230, 102);"></div>
+            <span>Healthy vegetation: 0.2 ≤ NDRE &lt; 0.4</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(77, 179, 77);"></div>
+            <span>Very healthy vegetation: 0.4 ≤ NDRE &lt; 0.6</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(26, 128, 26);"></div>
+            <span>Extremely healthy vegetation: NDRE ≥ 0.6</span>
+        </div>
+    </div>
+</body>
+</html>
+
+"""
+    elif param == "reci":
+        return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        .legend {
+            font-size: 14px;
+            font-family: 'Lato', sans-serif;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(127, 51, 26);"></div>
+            <span>Low chlorophyll: RECI &lt; 0.5</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(178, 127, 76);"></div>
+            <span>Moderate chlorophyll: 0.5 ≤ RECI &lt; 1.0</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(255, 204, 102);"></div>
+            <span>Healthy vegetation: 1.0 ≤ RECI &lt; 1.5</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(153, 230, 102);"></div>
+            <span>Very healthy vegetation: 1.5 ≤ RECI &lt; 2.0</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(77, 179, 77);"></div>
+            <span>High chlorophyll: 2.0 ≤ RECI &lt; 2.5</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(26, 128, 26);"></div>
+            <span>Extremely high chlorophyll: RECI ≥ 2.5</span>
+        </div>
+    </div>
+</body>
+</html>
+
+"""
+    elif param == "savi":
+        return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        .legend {
+            font-size: 14px;
+            font-family: 'Lato', sans-serif;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(127, 51, 26);"></div>
+            <span>Very low SAVI: SAVI &lt; -0.3</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(153, 102, 51);"></div>
+            <span>Low SAVI: -0.3 ≤ SAVI &lt; 0.0</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(255, 204, 102);"></div>
+            <span>Sparse vegetation: 0.0 ≤ SAVI &lt; 0.2</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(204, 255, 102);"></div>
+            <span>Moderate vegetation: 0.2 ≤ SAVI &lt; 0.4</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(102, 230, 102);"></div>
+            <span>Healthy vegetation: 0.4 ≤ SAVI &lt; 0.6</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(51, 179, 51);"></div>
+            <span>Very healthy vegetation: 0.6 ≤ SAVI &lt; 0.8</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(26, 128, 26);"></div>
+            <span>Extremely healthy vegetation: SAVI ≥ 0.8</span>
+        </div>
+    </div>
+</body>
+</html>
+
+"""
+    elif param == "osavi":
+        return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        .legend {
+            font-size: 14px;
+            font-family: 'Lato', sans-serif;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(127, 51, 26);"></div>
+            <span>Very low OSAVI: OSAVI &lt; -0.3</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(153, 102, 51);"></div>
+            <span>Low OSAVI: -0.3 ≤ OSAVI &lt; 0.0</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(255, 204, 102);"></div>
+            <span>Sparse vegetation: 0.0 ≤ OSAVI &lt; 0.2</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(204, 255, 102);"></div>
+            <span>Moderate vegetation: 0.2 ≤ OSAVI &lt; 0.4</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(102, 230, 102);"></div>
+            <span>Healthy vegetation: 0.4 ≤ OSAVI &lt; 0.6</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(51, 179, 51);"></div>
+            <span>Very healthy vegetation: 0.6 ≤ OSAVI &lt; 0.8</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(26, 128, 26);"></div>
+            <span>Extremely healthy vegetation: OSAVI ≥ 0.8</span>
+        </div>
+    </div>
+</body>
+</html>
+
+"""
+    elif param == "msavi":
+        return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        .legend {
+            font-size: 14px;
+            font-family: 'Lato', sans-serif;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(127, 51, 26);"></div>
+            <span>Very low MSAVI: MSAVI &lt; -0.2</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(153, 102, 51);"></div>
+            <span>Low MSAVI: -0.2 ≤ MSAVI &lt; 0.0</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(255, 204, 102);"></div>
+            <span>Sparse vegetation: 0.0 ≤ MSAVI &lt; 0.2</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(204, 255, 102);"></div>
+            <span>Moderate vegetation: 0.2 ≤ MSAVI &lt; 0.4</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(102, 230, 102);"></div>
+            <span>Healthy vegetation: 0.4 ≤ MSAVI &lt; 0.6</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(51, 179, 51);"></div>
+            <span>Very healthy vegetation: 0.6 ≤ MSAVI &lt; 0.8</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(26, 128, 26);"></div>
+            <span>Extremely healthy vegetation: MSAVI ≥ 0.8</span>
+        </div>
+    </div>
+</body>
+</html>
+
+"""
+    elif param == "sipi":
+        return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        .legend {
+            font-size: 14px;
+            font-family: 'Lato', sans-serif;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(127, 26, 13);"></div>
+            <span>Very low SIPI: SIPI &lt; -0.5 (brown, unhealthy vegetation)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(153, 102, 51);"></div>
+            <span>Low SIPI: -0.5 ≤ SIPI &lt; 0.0 (yellow, stressed vegetation)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(204, 178, 51);"></div>
+            <span>Medium SIPI: 0.0 ≤ SIPI &lt; 0.2 (light green, moderately healthy vegetation)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(102, 204, 102);"></div>
+            <span>High SIPI: 0.2 ≤ SIPI &lt; 0.4 (green, healthy vegetation)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(51, 153, 51);"></div>
+            <span>Very high SIPI: 0.4 ≤ SIPI &lt; 0.6 (dark green, very healthy vegetation)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(26, 128, 26);"></div>
+            <span>Extremely high SIPI: SIPI ≥ 0.6 (deep green, optimal chlorophyll content)</span>
+        </div>
+    </div>
+</body>
+</html>
+
+"""
+    elif param == "gci":
+        return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        .legend {
+            font-size: 14px;
+            font-family: 'Lato', sans-serif;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(128, 25, 25);"></div>
+            <span>Very low GCI: GCI &lt; -0.5 (brown, indicating unhealthy vegetation)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(153, 102, 51);"></div>
+            <span>Low GCI: -0.5 ≤ GCI &lt; 0.0 (yellow, stressed vegetation)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(204, 179, 51);"></div>
+            <span>Medium GCI: 0.0 ≤ GCI &lt; 0.2 (light green, moderately healthy vegetation)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(102, 230, 102);"></div>
+            <span>High GCI: 0.2 ≤ GCI &lt; 0.4 (green, healthy vegetation)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(51, 179, 51);"></div>
+            <span>Very high GCI: 0.4 ≤ GCI &lt; 0.6 (dark green, very healthy vegetation)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(26, 127, 26);"></div>
+            <span>Extremely high GCI: GCI ≥ 0.6 (deep green, optimal chlorophyll content)</span>
+        </div>
+    </div>
+</body>
+</html>
+
+"""
+    elif param == "ndsi":
+        return """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        .legend {
+            font-size: 14px;
+            font-family: 'Lato', sans-serif;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(0, 0, 255);"></div>
+            <span>Non-snow surfaces: NDSI &lt; 0.0 (blue, water or bare land)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(128, 128, 128);"></div>
+            <span>Low NDSI: 0.0 ≤ NDSI &lt; 0.2 (gray, mixed surfaces or sparse snow)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(204, 204, 204);"></div>
+            <span>Intermediate NDSI: 0.2 ≤ NDSI &lt; 0.4 (light gray, snow-covered areas)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(255, 255, 255);"></div>
+            <span>High NDSI: 0.4 ≤ NDSI &lt; 0.6 (white, fresh snow)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: rgb(255, 255, 255);"></div>
+            <span>Very high NDSI: NDSI ≥ 0.6 (still white, indicating snow)</span>
+        </div>
+    </div>
+</body>
+</html>
+
+"""
+    else:
+        raise ValueError("Unsupported parameter: " + param)
+
+
+
+
+def getTargetedParameter(param: str):
+    if param == "default":
+        return "Base View", "Image"
+    elif param == "arvi":
+        return "Atmospheric Resilience", "Burned Lands"
+    elif param == "evi":
+        return "Vegetation Density", "Late Season"
+    elif param == "lai":
+        return "Leaf Surface", "All Stages"
+    elif param == "nbr":
+        return "Farmyard Fires", "Crop Recovery"
+    elif param == "ndvi":
+        return "Active Biomass", "Middle Season"
+    elif param == "gndvi":
+        return "Chlorophyll Content", "Late Season"
+    elif param == "ndmi":
+        return "Water Content", "Irrigation / Drainage"
+    elif param == "ndre":
+        return "Chlorophyll Content", "Crop Development"
+    elif param == "reci":
+        return "Photosynthetic Activity", "Crop Development"
+    elif param == "savi":
+        return "Vegetation Density", "Initial Phase"
+    elif param == "osavi":
+        return "Vegetation Density", "Initial Phase"
+    elif param == "msavi":
+        return "Active Biomass", "Initial Phase"
+    elif param == "sipi":
+        return "Chlorophyll Content", "Crop Disease"
+    elif param == "gci":
+        return "Chlorophyll Content", "Seasons' Impact"
+    elif param == "ndsi":
+        return "Snow Cover", "Snow Mapping"
+    else:
+        raise ValueError("Unsupported parameter: " + param)
+
+
+
+def getHtmlAdvice(param: str):
+    if param == "default":
+        return evalscript_default
+    elif param == "arvi":
+        return evalscript_arvi
+    elif param == "evi":
+        return evalscript_evi
+    elif param == "lai":
+        return evalscript_lai
+    elif param == "nbr":
+        return evalscript_nbr
+    elif param == "ndvi":
+        return evalscript_ndvi
+    elif param == "gndvi":
+        return evalscript_gndvi
+    elif param == "ndmi":
+        return evalscript_ndmi
+    elif param == "ndre":
+        return evalscript_ndre
+    elif param == "reci":
+        return evalscript_reci
+    elif param == "savi":
+        return evalscript_savi
+    elif param == "osavi":
+        return evalscript_osavi
+    elif param == "msavi":
+        return evalscript_msavi
+    elif param == "sipi":
+        return evalscript_sipi
+    elif param == "gci":
+        return evalscript_gci
+    elif param == "ndsi":
+        return evalscript_ndsi
+    else:
+        raise ValueError("Unsupported parameter: " + param)
+
+
+def getTodayEt0():
+  fcst_eto = a.getRadParamCampaignForecast(key = "data_rad", param="et0", campaign="cy")
+  today = date.today()
+  today_eto = fcst_eto.loc[fcst_eto['ds'] == pd.to_datetime(today), 'ET0'].values[0]
+  return today_eto
+
+def getWaterNeeds(crop: str, pld: str):
+    today_eto = getTodayEt0()
+    delta_days = (date.today() - pd.to_datetime(pld).date()).days
+    gsmax = cste.crop_data[crop]['gsmax']
+    kc = cste.crop_data[crop]["kc"]
+    cumulative_days = [sum(gsmax[:i+1]) for i in range(len(gsmax))]
+
+    # Determine the current stage
+    cs = None
+    for stage, max_days in enumerate(cumulative_days, start=1):
+        if delta_days <= max_days:
+            cs = stage
+            break
+        else:
+            continue
+    if cs:
+      if cs == 1:
+        sta = "Initial Phase"
+      elif cs == 2:
+        sta = "Crop Development Phase"
+      elif cs == 3:
+        sta = "Middle Season Stage"
+      else:
+        sta = "Late Season Stage"
+    else:
+        sta = "Post Harvest"
+        return 0, sta
+
+    return round(kc[cs - 1] * today_eto, 2), sta
+
+
+def getRiceWaterNeeds():
+    pass
+
+
+    
 
 
 

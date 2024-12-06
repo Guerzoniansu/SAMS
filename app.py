@@ -1540,6 +1540,8 @@ def loadDashLandscapeBoard():
         key_rad = request.args.get('key_rad', default="data_rad")
         imgd = request.args.get('imgd', default=date.today().strftime("%Y-%m-%d"))
         param = request.args.get('param', default="default")
+        pld = request.args.get('pd', default=date.today().strftime("%Y-%m-%d"))
+        crop = request.args.get('crop', default="whea")
 
     nyStart = a.getNextYearStart(key=key)
     today = date.today()
@@ -1549,14 +1551,28 @@ def loadDashLandscapeBoard():
     image = l.getImage(aoi, param, time_interval=(one_week.strftime("%Y-%m-%d"), imgd))
     map = l.getMap(image, aoi)
     iframe = map.get_root()._repr_html_()
+    # cloudCover = l.calculateCloudCover(aoi, time_interval=(one_week.strftime("%Y-%m-%d"), imgd))
+
+    legend = l.getHtmlLegend(param=param)
+    target, use = l.getTargetedParameter(param=param)
+
+    wn, stage = l.getWaterNeeds(crop, pld)
 
     return render_template('dashboard/land.html',
                            rlat = lat,
                            rlon = lon,
                            nyStart = nyStart,
                            today = today,
-                           iframe = iframe
-                           )
+                           iframe = iframe,
+                           #cloudCover = cloudCover,
+                           legend = legend,
+                           param = param.upper(),
+                           imgd = imgd,
+                           target = target,
+                           use = use,
+                           wn = wn,
+                           stage = stage
+                        )
 
 
 

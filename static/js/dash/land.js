@@ -54,26 +54,47 @@ dateInput.max = maxDate;
 dateInput.value = maxDate
 
 
+const pld = document.querySelector("#selectPd");
+pld.min = minDate;
+pld.max = maxDate;
+pld.value = maxDate
+
+
 
 function setSelected() {
     const urlParams = new URLSearchParams(window.location.search);
     const imgd = urlParams.get('imgd') || today_f;
     const param = urlParams.get('param') || "arvi";
+    const pd = urlParams.get('pd') || today_f;
+    const crop = urlParams.get('crop') || "whea";
+
+    // Debugging: Check if values are being correctly set
+    console.log({ imgd, param, pd, crop });
+
     document.getElementById("datePicker").value = imgd;
-    document.getElementById("selectParam").value = param
+    document.getElementById("selectParam").value = param;
+    document.getElementById("selectPd").value = pd;
+    document.getElementById("selectCul").value = crop;
 }
 
 function update() {
     const date = document.getElementById("datePicker").value;
     const param = document.getElementById("selectParam").value;
+    const selectedPd = document.getElementById("selectPd").value;
+    const selectedCrop = document.getElementById("selectCul").value;
+
+    // Debugging: Check captured values
+    console.log({ date, param, selectedPd, selectedCrop });
+
     const url = new URL(window.location.href);
     url.searchParams.set('imgd', date);
     url.searchParams.set('param', param);
-    window.location.href = url.toString();
+    url.searchParams.set('pd', selectedPd);
+    url.searchParams.set('crop', selectedCrop);
+    window.location.href = url.toString(); // Reload with new parameters
 }
 
 window.onload = setSelected;
-
 
 
 

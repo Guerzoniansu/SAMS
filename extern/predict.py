@@ -151,27 +151,36 @@ def predict(dt: pd.DataFrame, tech: str = "A", crop: str = "whea"):
     point_reduced_df['lon'] = pd.to_numeric(point_reduced_df['lon'], errors='coerce')
     point_reduced_df['lat'] = pd.to_numeric(point_reduced_df['lat'], errors='coerce')
 
-    means = mstd[f'mean_{crop}']
-    stds = mstd[f'std_{crop}']
-    numeric_columns = [col for col in point_reduced_df.columns if col in means.index]
+    # scaler = joblib.load(os.path.join(path, f"scaler_{crop}_{tech}.pkl"))
+    # point_reduced_df = scaler.transform(point_reduced_df.to_numpy())
 
-    # Standardize the values
-    standardized_values = (point_reduced_df[numeric_columns] - means[numeric_columns]) / stds[numeric_columns]
+    # means = mstd[f'mean_{crop}']
+    # stds = mstd[f'std_{crop}']
+    # numeric_columns = [col for col in point_reduced_df.columns if col in means.index]
+
+    # # Standardize the values
+    # standardized_values = (point_reduced_df[numeric_columns] - means[numeric_columns]) / stds[numeric_columns]
     
-    # Add the standardized values back to the DataFrame
-    for col in standardized_values.columns:
-        point_reduced_df[col] = (standardized_values[col].tolist())[0]
+    # # Add the standardized values back to the DataFrame
+    # for col in standardized_values.columns:
+    #     point_reduced_df[col] = (standardized_values[col].tolist())[0]
+
+    model = xgb.Booster()
+    model.load_model(os.path.join(path, f"{crop}_{tech}.json"))
+    data_input = xgb.DMatrix(point_reduced_df)
+    prediction = model.predict(data_input)
+    return round(prediction[0], 2)
     
-    try:
-        model = xgb.Booster()
-        model.load_model(os.path.join(path, f"{crop}_{tech}.json"))
-        data_input = xgb.DMatrix(point_reduced_df)
-        prediction = model.predict(data_input)
-        return round(prediction[0], 2)
-    except:
-        model = lgb.Booster(model_file=os.path.join(path, f"{crop}_{tech}.json"))
-        prediction = model.predict(point_reduced_df.to_numpy(), predict_disable_shape_check=True)
-        return round(prediction[0], 2)
+    # try:
+    #     model = xgb.Booster()
+    #     model.load_model(os.path.join(path, f"{crop}_{tech}.json"))
+    #     data_input = xgb.DMatrix(point_reduced_df)
+    #     prediction = model.predict(data_input)
+    #     return round(prediction[0], 2)
+    # except:
+    #     model = lgb.Booster(model_file=os.path.join(path, f"{crop}_{tech}.json"))
+    #     prediction = model.predict(point_reduced_df.to_numpy(), predict_disable_shape_check=True)
+    #     return round(prediction[0], 2)
 
 
 

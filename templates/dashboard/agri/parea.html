@@ -314,6 +314,17 @@
                 }
             };
 
+            var point = {
+                type: "point",
+                longitude: lon,
+                latitude: lat
+            };
+
+            var pointGraphic = new Graphic({
+                geometry: point,
+                symbol: markerSymbol
+            });
+
             view.graphics.add(pointGraphic);
             const maxCropValue = Math.max(...cropData.map(crop => crop.crop));
             cropData.forEach(crop => {
@@ -391,16 +402,6 @@
                         }
                     }
                 });
-            });
-            var point = {
-                type: "point",
-                longitude: lon,
-                latitude: lat
-            };
-
-            var pointGraphic = new Graphic({
-                geometry: point,
-                symbol: markerSymbol
             });
         }); 
     </script>
