@@ -315,16 +315,16 @@
                 }
             };
 
-            var point = {
-                type: "point",
-                longitude: lon,
-                latitude: lat
-            };
+            // var point = {
+            //     type: "point",
+            //     longitude: lon,
+            //     latitude: lat
+            // };
 
-            var pointGraphic = new Graphic({
-                geometry: point,
-                symbol: markerSymbol
-            });
+            // var pointGraphic = new Graphic({
+            //     geometry: point,
+            //     symbol: markerSymbol
+            // });
 
             view.graphics.add(pointGraphic);
             const maxCropValue = Math.max(...cropData.map(crop => crop.crop));
@@ -403,6 +403,16 @@
                         }
                     }
                 });
+            });
+            var point = {
+                type: "point",
+                longitude: lon,
+                latitude: lat
+            };
+
+            var pointGraphic = new Graphic({
+                geometry: point,
+                symbol: markerSymbol
             });
         }); 
     </script>

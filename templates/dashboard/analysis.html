@@ -159,7 +159,7 @@
                     Analysis
                 </div>
             </a>
-            <a href="/dashboard/land?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad&imgd={{today}}" class="item home" status="none">
+            <a href="/dashboard/land?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad&imgd={{today}}&param=arvi" class="item home" status="none">
                 <div class="icon">
                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m40-240 240-320 180 240h300L560-586 460-454l-50-66 150-200 360 480H40Zm521-80Zm-361 0h160l-80-107-80 107Zm0 0h160-160Z"/></svg>
                 </div>
@@ -586,10 +586,85 @@
                 </div>
                 <div class="card second">
                     <div class="subcard point">
-                        
+                        <div class="head">
+                            <p class="text">Yields</p>
+                        </div>
+                        <div class="container">
+                            <div class="forecast">
+                                <p class="text">Potential Yields</p>
+                                <div class="table-yield">
+                                    <!-- <table>
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                <th>Rainfed</th>
+                                                <th>Irrigated</th>
+                                                <th>All Techs</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="even">
+                                                <td>Wheat</td>
+                                                <td>{{wheaRY}}</td>
+                                                <td>{{wheaIY}}</td>
+                                                <td>{{wheaAY}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Rice</td>
+                                                <td>{{riceRY}}</td>
+                                                <td>{{riceIY}}</td>
+                                                <td>{{riceAY}}</td>
+                                            </tr>
+                                            <tr class="even">
+                                                <td>Maize</td>
+                                                <td>{{maizRY}}</td>
+                                                <td>{{maizIY}}</td>
+                                                <td>{{maizAY}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Pearl Millet</td>
+                                                <td>{{pmilRY}}</td>
+                                                <td>{{pmilIY}}</td>
+                                                <td>{{pmilAY}}</td>
+                                            </tr>
+                                            <tr class="even">
+                                                <td>Small Millet</td>
+                                                <td>{{smilRY}}</td>
+                                                <td>{{smilIY}}</td>
+                                                <td>{{smilAY}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Sorghum</td>
+                                                <td>{{sorgRY}}</td>
+                                                <td>{{sorgIY}}</td>
+                                                <td>{{sorgAY}}</td>
+                                            </tr>
+                                            <tr class="even">
+                                                <td>Potato</td>
+                                                <td>{{potaRY}}</td>
+                                                <td>{{potaIY}}</td>
+                                                <td>{{potaAY}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Sweet Potato</td>
+                                                <td>{{swpoRY}}</td>
+                                                <td>{{swpoIY}}</td>
+                                                <td>{{swpoAY}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table> -->
+                                    <p class="subtext">Rainfed</p>
+                                    <canvas id="graph-yield-R" height="80px"></canvas>
+                                    <p class="subtext">Irrigated</p>
+                                    <canvas id="graph-yield-I" height="80px"></canvas>
+                                    <p class="subtext">All technologies</p>
+                                    <canvas id="graph-yield-A" height="80px"></canvas>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="subcard">
-
+                        
                     </div>
                 </div>
             </div>
@@ -1032,6 +1107,98 @@
                         beginAtZero: true
                     },
                     y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false, // Display the legend for both datasets
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    </script>
+
+
+    <script>
+        var ctx = document.querySelector("#graph-yield-R").getContext("2d");
+
+        var pointChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ rainfedY["labels"] | tojson }},
+                datasets: [
+                    {
+                        label: 'Yields (t/ha)',
+                        data: {{ rainfedY["values"] | safe }},
+                        backgroundColor: 'rgba(214, 46, 46, 0.6)',
+                        borderColor: 'rgba(214, 46, 46, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        beginAtZero: true
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            display: false
+                        },
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false, // Display the legend for both datasets
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    </script>
+    <script>
+        var ctx = document.querySelector("#graph-yield-I").getContext("2d");
+
+        var pointChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ irrigatedY["labels"] | tojson }},
+                datasets: [
+                    {
+                        label: 'Yields (t/ha)',
+                        data: {{ irrigatedY["values"] | safe }},
+                        backgroundColor: 'rgba(214, 46, 46, 0.6)',
+                        borderColor: 'rgba(214, 46, 46, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        beginAtZero: true
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            display: false
+                        },
                         beginAtZero: true
                     }
                 },

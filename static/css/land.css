@@ -352,8 +352,12 @@ body {
 }
 
 .main .content .cont {
-    display: grid;
-    grid-template-rows: 7fr 3fr;
+    /* display: grid;
+    grid-template-rows: 7fr 3fr; */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
     width: 100%;
 }
 
@@ -361,7 +365,7 @@ body {
     padding: 0;
     margin: 0;
     width: 100%;
-    height: 100%;
+    height: 75%;
     position: relative;
 }
 
@@ -383,6 +387,8 @@ body {
     align-items: center;
     background: var(--black);
     width: 100%;
+    height: 25%;
+    z-index: 100;
 }
 
 .foot .head-cont {
@@ -392,8 +398,8 @@ body {
     width: 100%;
     padding: 8px 10px;
     position: relative;
-    border-top: 3px solid var(--color9);
-    border-bottom: 3px solid var(--color9);
+    /* border-top: 3px solid var(--color9);
+    border-bottom: 3px solid var(--color9); */
 }
 
 .foot .head-cont .calendar {
@@ -412,7 +418,7 @@ body {
     -moz-appearance: none;
     background: var(--black);
     border: 2px solid var(--lighter-sidebar-bg);
-    border-radius: 8px;
+    border-radius: 3px;
     padding: 10px 15px;
     font-size: 16px;
     font-family: 'Arial', sans-serif;

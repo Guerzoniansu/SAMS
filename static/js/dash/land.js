@@ -58,13 +58,17 @@ dateInput.value = maxDate
 function setSelected() {
     const urlParams = new URLSearchParams(window.location.search);
     const imgd = urlParams.get('imgd') || today_f;
+    const param = urlParams.get('param') || "arvi";
     document.getElementById("datePicker").value = imgd;
+    document.getElementById("selectParam").value = param
 }
 
 function update() {
-    const sel = document.getElementById("datePicker").value;
+    const date = document.getElementById("datePicker").value;
+    const param = document.getElementById("selectParam").value;
     const url = new URL(window.location.href);
-    url.searchParams.set('imgd', sel);
+    url.searchParams.set('imgd', date);
+    url.searchParams.set('param', param);
     window.location.href = url.toString();
 }
 

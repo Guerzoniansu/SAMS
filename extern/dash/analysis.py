@@ -62,7 +62,7 @@ def getParamLastSevenDaysValues(param: str, key: str):
     dt = dtm.transform(key)[[param.upper()]].dropna(subset=[param.upper()])
     dt = dt.iloc[-8:-1]
     info = {
-        'labels': list(dt.index.strftime('%Y-%m-%d')),  # Only for labels (optional)
+        'labels': list(dt.index.strftime('%Y-%m-%d')),
         'values': list(dt[param.upper()])
     }
     return info

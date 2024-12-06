@@ -15,6 +15,7 @@ from extern.dash.params import stat as s
 from extern.dash.params import plot as p
 from extern.dash import analysis as a
 from extern.dash import land as l
+from extern import predict
 
 app = Flask(__name__)
 
@@ -1239,7 +1240,7 @@ def loadDashAnalysisBoard():
         lat = request.args.get('lat', default=None)
         key = request.args.get('key', default="data")
         key_rad = request.args.get('key_rad', default="data_rad")
-        pd =  request.args.get('pd', default="2025-01-01")
+        plantingdate =  request.args.get('pd', default="2025-01-01")
         crop =  request.args.get('crop', default="whea")
         tgp = request.args.get('tgp', default="max")
     
@@ -1325,7 +1326,7 @@ def loadDashAnalysisBoard():
     fcstTableForBpd = a.getForecastsTableForBestPlantingDate()
 
     # get cropdevelopment dataframe
-    table = a.createCropDevelopmentDataFrame(fcstTableForBpd, pd, crop, tgp=tgp)
+    table = a.createCropDevelopmentDataFrame(fcstTableForBpd, plantingdate, crop, tgp=tgp)
 
     # get stage time span
     ipSpan = a.getStageStartAndEndDate(table, stage="ip")
@@ -1367,6 +1368,51 @@ def loadDashAnalysisBoard():
     sorgMaxBestPd = a.getCropOptimalPlantingDate(dt=fcstTableForBpd, crop="sorg", type="max")
     potaMaxBestPd = a.getCropOptimalPlantingDate(dt=fcstTableForBpd, crop="pota", type="max")
     swpoMaxBestPd = a.getCropOptimalPlantingDate(dt=fcstTableForBpd, crop="swpo", type="max")
+
+    dtg = predict.getMonthlyData(lat, lon)
+    wheaRY = predict.predict(dtg, tech="I", crop="whea")
+    wheaIY = predict.predict(dtg, tech="I", crop="whea")
+
+    riceRY = predict.predict(dtg, tech="R", crop="rice")
+    riceIY = predict.predict(dtg, tech="I", crop="rice")
+
+    maizRY = predict.predict(dtg, tech="R", crop="maiz")
+    maizIY = predict.predict(dtg, tech="I", crop="maiz")
+
+    pmilRY = predict.predict(dtg, tech="R", crop="pmil")
+    pmilIY = predict.predict(dtg, tech="I", crop="pmil")
+
+    smilRY = predict.predict(dtg, tech="R", crop="smil")
+    smilIY = predict.predict(dtg, tech="I", crop="smil")
+
+    sorgRY = predict.predict(dtg, tech="R", crop="sorg")
+    sorgIY = predict.predict(dtg, tech="I", crop="sorg")
+
+    potaRY = predict.predict(dtg, tech="R", crop="pota")
+    potaIY = predict.predict(dtg, tech="I", crop="pota")
+
+    swpoRY = predict.predict(dtg, tech="R", crop="swpo")
+    swpoIY = predict.predict(dtg, tech="I", crop="swpo")
+
+    dtR = pd.DataFrame({
+        "crop": ["Whea", "Rice", "Maiz", "Pmil", "Smil", "Sorg", "Pota", "Swpo"],
+        "yield": [wheaRY, riceRY, maizRY, pmilRY, smilRY, sorgRY, potaRY, swpoRY]
+    })
+    dtR = dtR.sort_values(by='yield', ascending=False)
+    rainfedY = {
+        'labels': list(dtR["crop"]),
+        'values': list(dtR["yield"])
+    }
+
+    dtI = pd.DataFrame({
+        "crop": ["Whea", "Rice", "Maiz", "Pmil", "Smil", "Sorg", "Pota", "Swpo"],
+        "yield": [wheaIY, riceIY, maizIY, pmilIY, smilIY, sorgIY, potaIY, swpoIY]
+    })
+    dtI = dtI.sort_values(by='yield', ascending=False)
+    irrigatedY = {
+        'labels': list(dtI["crop"].tolist()),
+        'values': list(dtI["yield"].tolist())
+    }
 
 
     return render_template('dashboard/analysis.html',
@@ -1472,7 +1518,11 @@ def loadDashAnalysisBoard():
                            wnMonth = wnMonth,
                            precMonth = precMonth,
 
-                           eor = eor
+                           eor = eor,
+                           dtg = dtg,
+
+                           rainfedY = rainfedY,
+                           irrigatedY = irrigatedY
                         )
 
 
@@ -1489,13 +1539,14 @@ def loadDashLandscapeBoard():
         key = request.args.get('key', default="data")
         key_rad = request.args.get('key_rad', default="data_rad")
         imgd = request.args.get('imgd', default=date.today().strftime("%Y-%m-%d"))
+        param = request.args.get('param', default="default")
 
     nyStart = a.getNextYearStart(key=key)
     today = date.today()
     one_week = pd.to_datetime(imgd) - timedelta(weeks=1)
 
     aoi = l.getFieldBBox(lat, lon, res=10)
-    image = l.getImage(aoi, time_interval=(one_week.strftime("%Y-%m-%d"), imgd))
+    image = l.getImage(aoi, param, time_interval=(one_week.strftime("%Y-%m-%d"), imgd))
     map = l.getMap(image, aoi)
     iframe = map.get_root()._repr_html_()
 
