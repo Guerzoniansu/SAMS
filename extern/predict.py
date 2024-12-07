@@ -124,9 +124,7 @@ def getMonthlyData(lat: float, lon: float):
 def predict(dt: pd.DataFrame, tech: str = "A", crop: str = "whea"):
     path = os.path.join(os.getcwd(), "datasets", "ACP", tech)
     proj_path = os.path.join(path, f"dim_projection_{tech}.csv")
-    mstd_path = os.path.join(path, f"stats_{crop}_{tech}.csv")
     acp_coefficients = pd.read_csv(proj_path, sep=";", index_col=0)
-    mstd = pd.read_csv(mstd_path, sep=",",  index_col=0)
     dtI = dt.copy()
 
     # columns_clrsky = [col for col in dtI.columns if col.startswith("CLRSKY_DAYS")]
