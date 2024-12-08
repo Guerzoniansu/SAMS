@@ -1,9 +1,11 @@
-from flask import Flask, request, render_template, redirect, url_for, jsonify
+from flask import Flask, request, render_template, redirect, url_for, jsonify, send_file, session
 import numpy as np
 import pandas as pd
 from bokeh.plotting import figure
 from bokeh.embed import components
 from datetime import date, timedelta
+import json
+import io
 
 
 from extern import fetch as f
@@ -16,6 +18,8 @@ from extern.dash.params import plot as p
 from extern.dash import analysis as a
 from extern.dash import land as l
 from extern import predict
+
+temp_storage = {}
 
 app = Flask(__name__)
 
@@ -1557,7 +1561,12 @@ def loadDashLandscapeBoard():
     target, use = l.getTargetedParameter(param=param)
 
     cdData = l.createCropDevelopmentDataFrame(pld, crop)
+    wn = l.getWaterNeeds(cdData)
+    sta = l.getCurrentStage(cdData)
+    er = l.getExpectedRainfall(cdData)
     script, div = l.getPlot(cdData, variables=["Water Need", "Rainfall"])
+    user_key = session.get("id", "default")
+    temp_storage[user_key] = cdData
 
     return render_template('dashboard/land.html',
                            rlat = lat,
@@ -1573,8 +1582,50 @@ def loadDashLandscapeBoard():
                            use = use,
                            script = script,
                            div = div,
-                           cdData = cdData
+                           cdData = cdData,
+                           wn = wn,
+                           sta = sta,
+                           er = er,
+                           pld = pld,
+                           crop = crop
                         )
+
+
+
+@app.route('/dashboard/land/export/csv', methods=['GET'])
+def export_csv():
+    crop = request.args.get('crop', default="whea")
+
+    # Retrieve cdData from temp_storage
+    user_key = session.get('id', 'default')
+    if user_key not in temp_storage:
+        return "No data available for export", 404
+
+    cdData = temp_storage[user_key]
+
+    # Convert to CSV and send as a response
+    output = io.StringIO()
+    cdData.to_csv(output, index=False)
+    output.seek(0)
+    return send_file(
+        io.BytesIO(output.getvalue().encode()),
+        mimetype='text/csv',
+        as_attachment=True,
+        download_name=f'SAMS_{crop}_development_data.csv'
+    )
+
+
+@app.route('/dashboard/land/export/json', methods=['GET'])
+def export_json():
+    # Retrieve cdData from temp_storage
+    user_key = session.get('id', 'default')
+    if user_key not in temp_storage:
+        return "No data available for export", 404
+
+    cdData = temp_storage[user_key]
+
+    # Convert to JSON and send as a response
+    return jsonify(cdData.to_dict(orient='records'))
 
 
 

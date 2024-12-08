@@ -1861,41 +1861,41 @@ def getHtmlAdvice(param: str):
         raise ValueError("Unsupported parameter: " + param)
 
 
-def getTodayEt0():
-  fcst_eto = a.getRadParamCampaignForecast(key = "data_rad", param="et0", campaign="cy")
-  today = date.today()
-  today_eto = fcst_eto.loc[fcst_eto['ds'] == pd.to_datetime(today), 'ET0'].values[0]
-  return today_eto
+# def getTodayEt0():
+#   fcst_eto = a.getRadParamCampaignForecast(key = "data_rad", param="et0", campaign="cy")
+#   today = date.today()
+#   today_eto = fcst_eto.loc[fcst_eto['ds'] == pd.to_datetime(today), 'ET0'].values[0]
+#   return today_eto
 
-def getWaterNeeds(crop: str, pld: str):
-    today_eto = getTodayEt0()
-    delta_days = (date.today() - pd.to_datetime(pld).date()).days
-    gsmax = cste.crop_data[crop]['gsmax']
-    kc = cste.crop_data[crop]["kc"]
-    cumulative_days = [sum(gsmax[:i+1]) for i in range(len(gsmax))]
+# def getWaterNeeds(crop: str, pld: str):
+#     today_eto = getTodayEt0()
+#     delta_days = (date.today() - pd.to_datetime(pld).date()).days
+#     gsmax = cste.crop_data[crop]['gsmax']
+#     kc = cste.crop_data[crop]["kc"]
+#     cumulative_days = [sum(gsmax[:i+1]) for i in range(len(gsmax))]
 
-    # Determine the current stage
-    cs = None
-    for stage, max_days in enumerate(cumulative_days, start=1):
-        if delta_days <= max_days:
-            cs = stage
-            break
-        else:
-            continue
-    if cs:
-      if cs == 1:
-        sta = "Initial Phase"
-      elif cs == 2:
-        sta = "Crop Development Phase"
-      elif cs == 3:
-        sta = "Middle Season Stage"
-      else:
-        sta = "Late Season Stage"
-    else:
-        sta = "Post Harvest"
-        return 0, sta
+#     # Determine the current stage
+#     cs = None
+#     for stage, max_days in enumerate(cumulative_days, start=1):
+#         if delta_days <= max_days:
+#             cs = stage
+#             break
+#         else:
+#             continue
+#     if cs:
+#       if cs == 1:
+#         sta = "Initial Phase"
+#       elif cs == 2:
+#         sta = "Crop Development Phase"
+#       elif cs == 3:
+#         sta = "Middle Season Stage"
+#       else:
+#         sta = "Late Season Stage"
+#     else:
+#         sta = "Post Harvest"
+#         return 0, sta
 
-    return round(kc[cs - 1] * today_eto, 2), sta
+#     return round(kc[cs - 1] * today_eto, 2), sta
 
 
 def getRiceWaterNeeds():
@@ -1987,13 +1987,13 @@ def createCropDevelopmentDataFrame(start_date: str, crop: str, tgp: int = None):
         effectiveness = (stage_data['PRECTOTCORR'] / water_need).fillna(0).astype(float) * 100
 
         if stage_idx == 1:
-            stage = "Initial"
+            stage = "Initial Phase"
         elif stage_idx == 2:
-            stage = "Crop Development"
+            stage = "Crop Development Phase"
         elif stage_idx == 3:
-            stage = "Middle Season"
+            stage = "Middle Season Stage"
         else:
-            stage = "Late Season"
+            stage = "Late Season Stage"
 
         # Update the DataFrame
         growth_period.loc[stage_data.index, 'STAGE_CODE'] = stage_idx
@@ -2008,12 +2008,45 @@ def createCropDevelopmentDataFrame(start_date: str, crop: str, tgp: int = None):
     return growth_period#.reset_index(drop=True)
 
 
+def getWaterNeeds(df: pd.DataFrame):
+    dfC = df.copy()
+    dfC['ds'] = pd.to_datetime(dfC['ds'])
+    today = pd.Timestamp('today').normalize()
+    waterNeedToday = dfC.loc[dfC['ds'] == today, 'Water Need']
+    
+    if not waterNeedToday.empty:
+        return round(waterNeedToday.iloc[0], 2)
+    else:
+        return None
+    
 
-from bokeh.plotting import figure
-from bokeh.models import ColumnDataSource, Span
-from bokeh.embed import components
-from bokeh.palettes import Spectral11
-import pandas as pd
+def getCurrentStage(df: pd.DataFrame):
+    dfC = df.copy()
+    dfC['ds'] = pd.to_datetime(dfC['ds'])
+    today = pd.Timestamp('today').normalize()
+    currentStage = dfC.loc[dfC['ds'] == today, 'STAGE']
+    
+    if not currentStage.empty:
+        return currentStage.iloc[0]
+    else:
+        return None
+
+
+
+def getExpectedRainfall(df: pd.DataFrame):
+    dfC = df.copy()
+    dfC['ds'] = pd.to_datetime(dfC['ds'])
+    today = pd.Timestamp('today').normalize()
+    expectedRainfall = dfC.loc[dfC['ds'] == today, 'Rainfall']
+    
+    if not expectedRainfall.empty:
+        return round(expectedRainfall.iloc[0], 2)
+    else:
+        return None
+
+
+
+
 
 def getPlot(df: pd.DataFrame, variables: list):
     """
@@ -2025,25 +2058,27 @@ def getPlot(df: pd.DataFrame, variables: list):
     :return: script, div tuple for embedding the plot in a Flask app
     """
     # Ensure STAGE and ds columns are present in the DataFrame
-    if "STAGE" not in df.columns:
+    dfC = df.copy()
+    if "STAGE" not in dfC.columns:
         raise ValueError("The DataFrame must contain a 'STAGE' column.")
-    if "ds" not in df.columns:
+    if "ds" not in dfC.columns:
         raise ValueError("The DataFrame must contain a 'ds' column.")
 
     # Ensure ds is a datetime object and set it as the index
-    df["ds"] = pd.to_datetime(df["ds"])
-    df.set_index("ds", inplace=True)
+    dfC["ds"] = pd.to_datetime(dfC["ds"])
+    dfC.set_index("ds", inplace=True)
 
     # Create a ColumnDataSource from the DataFrame
-    source = ColumnDataSource(df.reset_index())
+    source = ColumnDataSource(dfC.reset_index())
 
     # Initialize the figure
     p = figure(
         title="Crop Development Analysis",
         y_axis_label="Values (mm/day)",
         x_axis_type="datetime",
-        width=800,
-        height=400,
+        # width=800,
+        height=300,
+        sizing_mode='stretch_both'
     )
 
     # Assign colors to variables
@@ -2061,30 +2096,40 @@ def getPlot(df: pd.DataFrame, variables: list):
         )
 
     # Add dashed lines for STAGE transitions
-    stages = df["STAGE"].dropna().unique()
+    stages = dfC["STAGE"].dropna().unique()
     stages.sort()
     for stage in stages:  # Skip the last stage, as it doesn't have an "end"
-        end_index = df[df["STAGE"] == stage].index[-1]
+        end_index = dfC[dfC["STAGE"] == stage].index[-1]
         dashed_line = Span(
             location=end_index.timestamp() * 1000,  # Convert datetime to milliseconds
             dimension="height",
             line_color="#d62e2e",
             line_dash="dashed",
-            line_width=1
+            line_width=2
         )
         p.add_layout(dashed_line)
 
     # Configure legend
     p.legend.location = "top_left"
     p.legend.click_policy = "hide"
+    p.legend.background_fill_color = None
+    p.legend.border_line_color = None
+    p.legend.label_text_color = "white"
+    p.legend.label_text_font_size = "12pt"
+    p.legend.label_text_font_style = "normal"
+    p.legend.spacing = 5
+    p.legend.margin = 10
+    p.legend.padding = 5
+    p.legend.orientation = "horizontal"
+    p.legend.location = "top_center"
 
-    p.background_fill_color = None  # Transparent background
-    p.border_fill_color = None      # Transparent border
-    p.outline_line_color = None     # No outline
+    p.background_fill_color = None
+    p.border_fill_color = None
+    p.outline_line_color = None
 
     # Set white grid and axis lines
-    p.xgrid.grid_line_color = None
     p.ygrid.grid_line_color = None
+    p.xgrid.grid_line_color = None #"#dbd7d7"
     p.xaxis.axis_line_color = "white"
     p.yaxis.axis_line_color = "white"
     p.xaxis.major_tick_line_color = "white"
@@ -2096,6 +2141,7 @@ def getPlot(df: pd.DataFrame, variables: list):
     p.xaxis.major_label_text_color = "#dee5e8"
     p.yaxis.major_label_text_color = "#dee5e8"
     p.yaxis.axis_label_text_color = "#dee5e8"
+    p.yaxis.axis_label_text_font_style = "normal"
 
     # Set title styling
     p.title.text_color = "white"

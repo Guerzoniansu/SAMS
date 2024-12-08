@@ -601,6 +601,35 @@ input#selectLevel:focus {
     justify-content: flex-start;
 }
 
+.second .dash button {
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    border: none;
+    border-radius: 2px;
+    color: white;
+    padding: 12px 24px;
+    font-size: 16px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-left: 25px;
+}
+
+.second .dash button:hover {
+    background: linear-gradient(135deg, #2575fc, #6a11cb);
+}
+
+
+.second .dash .item-dash {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.second .dash .item-dash:first-child {
+    margin-right: 15px;
+}
+
 /* Title Styling */
 .second .title {
     font-size: 14px;
@@ -626,7 +655,7 @@ input#selectLevel:focus {
 
 .second select {
     width: 100%;
-    padding: 5px 10px;
+    padding: 10px 15px;
     border: 1px solid var(--lighter-sidebar-bg);
     margin-bottom: 10px;
     background: transparent;
@@ -678,32 +707,92 @@ input#selectLevel:focus {
     width: 100%;
 }
 
-.result > div {
+.result .insights {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.result .insights .title-i {
+    font-size: 1.5rem;
+    font-weight: 500;
+    width: 100%;
+    text-align: start;
+    margin-bottom: 10px;
+}
+
+.result .insights .cont-i {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.result .insights .cont-i .subcont {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 5px;
-    text-align: center;
-    width: 100%;
+    width: 33%;
+    background: black;
+    padding: 10px 20px;
+    border-radius: 3px;
+    border: 1px solid transparent;
 }
 
-.result .text-s {
-    font-size: 14px;
-    color: var(--white);
-    margin-bottom: 5px;
+.result .insights .cont-i .subcont:hover {
+    border: 1px solid var(--lighter-sidebar-bg);
 }
 
-.result .val {
-    font-size: 1.1rem;
-    font-weight: bold;
+
+.result .insights .cont-i .subcont .text {
+    font-size: 1rem;
+    margin-bottom: 8px;
+}
+
+.result .insights .cont-i .subcont .val {
+    font-size: 1.3rem;
     color: var(--color9);
 }
 
-/* Hover Effects */
-.result > div:hover {
-    border-color: var(--color9);
+.result .graph {
+    width: 100%;
+    height: 300px;
+    display: grid;
+    grid-template-columns: 4fr 1fr;
+    gap: 10px;
+    padding: 10px 0px;
 }
+
+.result .graph .graph-part {
+    width: 100%;
+}
+
+.result .graph .buttons {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 10px 0;
+}
+
+.result .graph .buttons button {
+    width: 100%;
+    background: var(--color9);
+    padding: 8px 15px;
+    border: none;
+    border-radius: 2px;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
 
 
 

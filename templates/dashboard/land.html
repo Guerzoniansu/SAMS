@@ -258,23 +258,51 @@
                         </div>
                         <div class="second">
                             <div class="dash">
-                                <p class="title">Crop</p>
-                                <select name="selCul" id="selectCul" class="cul" onchange="update()">
-                                    <option value="whea" selected>Wheat</option>
-                                    <option value="rice">Rice</option>
-                                    <option value="maiz">Maize</option>
-                                    <option value="pota">Potato</option>
-                                    <option value="swpo">Sweet Potato</option>
-                                    <option value="pmil">Pearl Millet</option>
-                                    <option value="smil">Small Millet</option>
-                                    <option value="sorg">Sorghum</option>
-                                </select>
-                                <p class="title">Planting Date</p>
-                                <input type="date" name="selPd" id="selectPd" onchange="update()">
+                                <div class="item-dash">
+                                    <p class="title">Crop</p>
+                                    <select name="selCul" id="selectCul" class="cul">
+                                        <option value="whea" selected>Wheat</option>
+                                        <option value="rice">Rice</option>
+                                        <option value="maiz">Maize</option>
+                                        <option value="pota">Potato</option>
+                                        <option value="swpo">Sweet Potato</option>
+                                        <option value="pmil">Pearl Millet</option>
+                                        <option value="smil">Small Millet</option>
+                                        <option value="sorg">Sorghum</option>
+                                    </select>
+                                </div>
+                                <div class="item-dash">
+                                    <p class="title">Planting Date</p>
+                                    <input type="date" name="selPd" id="selectPd">
+                                </div>
+                                <button type="button" onclick="update()">Submit</button>
                             </div>
                             <div class="result">
+                                <div class="insights">
+                                    <p class="title-i">Today</p>
+                                    <div class="cont-i">
+                                        <div class="subcont">
+                                            <p class="text">Water Needs</p>
+                                            <p class="val">{{wn}} mm/day</p>
+                                        </div>
+                                        <div class="subcont">
+                                            <p class="text">Expected Rainfall</p>
+                                            <p class="val">{{er}} mm/day</p>
+                                        </div>
+                                        <div class="subcont">
+                                            <p class="text">Current Stage</p>
+                                            <p class="val">{{sta}}</p>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="graph">
-                                    {{ div|safe }}
+                                    <div class="graph-part">
+                                        {{ div|safe }}
+                                    </div>
+                                    <div class="buttons">
+                                        <button id="export-csv" type="button">Export as CSV</button>
+                                        <button id="export-json" type="button">Export as JSON</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -283,6 +311,17 @@
             </div>
         </section>
     </section>
+
+    <script>
+        document.getElementById('export-csv').addEventListener('click', function () {
+            window.location.href = '/dashboard/land/export/csv?crop={{crop}}';
+        });
+    
+        document.getElementById('export-json').addEventListener('click', function () {
+            window.location.href = '/dashboard/land/export/json';
+        });
+    </script>
+    
     <script src="{{ url_for('static', filename='js/dash/home.js') }}"></script>
     <script src="{{ url_for('static', filename='js/dash/land.js') }}"></script>
 </body>
