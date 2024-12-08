@@ -4,6 +4,12 @@ import pandas as pd
 import numpy as np
 from datetime import date, timedelta
 import folium
+from prophet import Prophet
+from bokeh.plotting import figure
+from bokeh.models import ColumnDataSource, Span, Legend
+from bokeh.embed import components
+from bokeh.colors import named
+from bokeh.palettes import Spectral11
 
 from sentinelhub import (
     SHConfig,
@@ -27,6 +33,7 @@ from requests_oauthlib import OAuth2Session
 from extern import utils
 from extern.dash import analysis as a
 from extern.dash import cste
+from extern.dash.dt import dtmaker as dtm
 
 
 
@@ -1893,6 +1900,216 @@ def getWaterNeeds(crop: str, pld: str):
 
 def getRiceWaterNeeds():
     pass
+
+
+def getParamCampaignForecast(key: str, param: str, tgp: int, pld: str):
+    dt = dtm.transform(key)[[param.upper()]].dropna(subset=[param.upper()])
+    dt['ds'] = dt.index
+    dt.rename(columns={param.upper(): 'y'}, inplace=True)
+    
+    ld = pd.to_datetime(pld).date()
+    futures = pd.date_range(start=ld, end=ld + pd.Timedelta(days=1 + tgp), freq='D')
+    futures = pd.DataFrame({'ds': futures})
+
+    model = Prophet(growth="flat", seasonality_mode = 'additive')
+    model.fit(dt)
+
+    fcst = model.predict(futures)
+    fcst = fcst[["ds", "yhat"]]
+    # fcst = fcst[fcst['ds'] > dt['ds'].max()]
+    fcst.rename(columns={'yhat': param.upper()}, inplace=True)
+    return fcst
+
+
+def getRadParamCampaignForecast(key: str, param: str, tgp: int, pld: str):
+    dt = dtm.transformRadiationData(key)[[param.upper()]]
+    dt['ds'] = dt.index
+    dt.rename(columns={param.upper(): 'y'}, inplace=True)
+    
+    ld = pd.to_datetime(pld).date()
+    futures = pd.date_range(start=ld, end=ld + pd.Timedelta(days=1 + tgp), freq='D')
+    futures = pd.DataFrame({'ds': futures})
+
+    model = Prophet(growth="flat", seasonality_mode = 'additive')
+    model.fit(dt)
+
+    fcst = model.predict(futures)
+    fcst = fcst[["ds", "yhat"]]
+    # fcst = fcst[fcst['ds'] > dt['ds'].max()]
+    fcst.rename(columns={'yhat': param.upper()}, inplace=True)
+    return fcst
+
+
+def getForecastForCropDevelopment(tgp: int, pld: str, key: str = "data", key_rad = "data_rad"):
+    fcstPrectotcorr = getParamCampaignForecast(key, "prectotcorr", tgp=tgp, pld=pld)
+    fcstEt0 = getRadParamCampaignForecast(key_rad, param="et0", tgp=tgp, pld=pld)
+    dt = pd.merge(fcstPrectotcorr, fcstEt0, on='ds', how='inner')
+    return dt
+
+
+
+def createCropDevelopmentDataFrame(start_date: str, crop: str, tgp: int = None):
+    """
+    Create a DataFrame for the crop development period, starting from a given date.
+
+    Parameters:
+        start_date (str): The starting date in 'YYYY-MM-DD' format.
+        crop (str): The crop key.
+        tgp (int): Total growth period.
+
+    Returns:
+        DataFrame: A DataFrame containing crop development details.
+    """
+    crop_info = cste.crop_data[crop]
+    kc_stages = crop_info['kc']
+    # stages = [round(tgp * kc/sum(kc_stages)) for kc in kc_stages]
+    stages = crop_info.get('gsmax', [])
+    tgp = crop_info['maxtgp']
+
+    dt = getForecastForCropDevelopment(tgp, pld=start_date)
+    dt['ds'] = pd.to_datetime(dt['ds']).dt.date
+
+    # Filter data starting from the given start_date
+    start_idx = dt[dt['ds'] == pd.to_datetime(start_date).date()].index[0]
+    growth_period = dt.iloc[start_idx:start_idx + tgp].copy()
+
+    # Initialize columns for the output DataFrame
+    growth_period['STAGE_CODE'] = None
+    growth_period['STAGE'] = None
+    growth_period['Water Need'] = 0.0
+    growth_period['Rainfall effectiveness'] = 0.0
+
+    day_index = 0
+
+    for stage_idx, (stage_length, kc) in enumerate(zip(stages, kc_stages), start=1):
+        stage_data = growth_period.iloc[day_index:day_index + stage_length]
+        water_need = (stage_data['ET0'] * kc).astype(float)
+        effectiveness = (stage_data['PRECTOTCORR'] / water_need).fillna(0).astype(float) * 100
+
+        if stage_idx == 1:
+            stage = "Initial"
+        elif stage_idx == 2:
+            stage = "Crop Development"
+        elif stage_idx == 3:
+            stage = "Middle Season"
+        else:
+            stage = "Late Season"
+
+        # Update the DataFrame
+        growth_period.loc[stage_data.index, 'STAGE_CODE'] = stage_idx
+        growth_period.loc[stage_data.index, 'STAGE'] = f"{stage}"
+        growth_period.loc[stage_data.index, 'Water Need'] = water_need.values
+        growth_period.loc[stage_data.index, 'Rainfall effectiveness'] = effectiveness.values
+
+        day_index += stage_length
+
+    growth_period.rename(columns={'PRECTOTCORR': "Rainfall"}, inplace=True)
+
+    return growth_period#.reset_index(drop=True)
+
+
+
+from bokeh.plotting import figure
+from bokeh.models import ColumnDataSource, Span
+from bokeh.embed import components
+from bokeh.palettes import Spectral11
+import pandas as pd
+
+def getPlot(df: pd.DataFrame, variables: list):
+    """
+    Generates a Bokeh plot with data from the DataFrame, including dashed lines
+    to mark the end of crop development phases as specified in the STAGE column.
+
+    :param df: pandas DataFrame containing the data
+    :param variables: List of column names to be plotted
+    :return: script, div tuple for embedding the plot in a Flask app
+    """
+    # Ensure STAGE and ds columns are present in the DataFrame
+    if "STAGE" not in df.columns:
+        raise ValueError("The DataFrame must contain a 'STAGE' column.")
+    if "ds" not in df.columns:
+        raise ValueError("The DataFrame must contain a 'ds' column.")
+
+    # Ensure ds is a datetime object and set it as the index
+    df["ds"] = pd.to_datetime(df["ds"])
+    df.set_index("ds", inplace=True)
+
+    # Create a ColumnDataSource from the DataFrame
+    source = ColumnDataSource(df.reset_index())
+
+    # Initialize the figure
+    p = figure(
+        title="Crop Development Analysis",
+        y_axis_label="Values (mm/day)",
+        x_axis_type="datetime",
+        width=800,
+        height=400,
+    )
+
+    # Assign colors to variables
+    colors = Spectral11[:len(variables)]
+
+    # Plot each variable
+    for color, var in zip(colors, variables):
+        p.line(
+            x="ds",
+            y=var,
+            source=source,
+            line_width=2,
+            color=color,
+            legend_label=var
+        )
+
+    # Add dashed lines for STAGE transitions
+    stages = df["STAGE"].dropna().unique()
+    stages.sort()
+    for stage in stages:  # Skip the last stage, as it doesn't have an "end"
+        end_index = df[df["STAGE"] == stage].index[-1]
+        dashed_line = Span(
+            location=end_index.timestamp() * 1000,  # Convert datetime to milliseconds
+            dimension="height",
+            line_color="#d62e2e",
+            line_dash="dashed",
+            line_width=1
+        )
+        p.add_layout(dashed_line)
+
+    # Configure legend
+    p.legend.location = "top_left"
+    p.legend.click_policy = "hide"
+
+    p.background_fill_color = None  # Transparent background
+    p.border_fill_color = None      # Transparent border
+    p.outline_line_color = None     # No outline
+
+    # Set white grid and axis lines
+    p.xgrid.grid_line_color = None
+    p.ygrid.grid_line_color = None
+    p.xaxis.axis_line_color = "white"
+    p.yaxis.axis_line_color = "white"
+    p.xaxis.major_tick_line_color = "white"
+    p.yaxis.major_tick_line_color = "white"
+    p.xaxis.minor_tick_line_color = None
+    p.yaxis.minor_tick_line_color = None
+    p.xaxis.axis_line_width = 2
+    p.yaxis.axis_line_width = 2
+    p.xaxis.major_label_text_color = "#dee5e8"
+    p.yaxis.major_label_text_color = "#dee5e8"
+    p.yaxis.axis_label_text_color = "#dee5e8"
+
+    # Set title styling
+    p.title.text_color = "white"
+    p.title.text_font_size = "16pt"
+
+    # Return script and div for embedding in Flask
+    script, div = components(p)
+    return script, div
+
+
+
+
+
+
 
 
     

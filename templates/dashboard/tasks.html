@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dash | Landscape</title>
+    <title>Dash | Tasks</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,15 +16,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 
-    <link rel="stylesheet" href="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.0.min.css" type="text/css" />
-    <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-3.6.0.min.js"></script>
-    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-3.6.0.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-gl-3.6.0.min.js" crossorigin="anonymous"></script>
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/land.css') }}">
-
-    {{ script|safe }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tasks.css') }}">
 </head>
 <body>
     <nav class="sidebar opened">
@@ -169,7 +162,7 @@
                     Analysis
                 </div>
             </a>
-            <a href="/dashboard/land?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad&imgd={{today}}&param=arvi&pd={{today}}&crop=whea" class="item home" status="selected">
+            <a href="/dashboard/land?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad&imgd={{today}}&param=arvi&pd={{today}}&crop=whea" class="item home" status="none">
                 <div class="icon">
                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m40-240 240-320 180 240h300L560-586 460-454l-50-66 150-200 360 480H40Zm521-80Zm-361 0h160l-80-107-80 107Zm0 0h160-160Z"/></svg>
                 </div>
@@ -177,7 +170,7 @@
                     Landscape
                 </div>
             </a>
-            <a href="/dashboard/tasks?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad" class="item home" status="none">
+            <a href="/dashboard/tasks?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad" class="item home" status="selected">
                 <div class="icon">
                     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="m438-240 226-226-58-58-169 169-84-84-57 57 142 142ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z"/></svg>
                 </div>
@@ -199,91 +192,10 @@
             </div>
         </header>
         <section class="content">
-            <div class="tasks">
-                <p class="text">MapDash</p>
-                <div class="dashexp">
-                    <select name="selParam" id="selectParam" onchange="update()">
-                        <option value="default">BASE MAP</option>
-                        <option value="arvi">ARVI</option>
-                        <option value="evi">EVI</option>
-                        <option value="lai">LAI</option>
-                        <option value="nbr">NBR</option>
-                        <option value="ndvi">NDVI</option>
-                        <option value="gndvi">GNDVI</option>
-                        <option value="ndmi">NDMI</option>
-                        <option value="ndre">NDRE</option>
-                        <option value="reci">RECI</option>
-                        <option value="savi">SAVI</option>
-                        <option value="osavi">OSAVI</option>
-                        <option value="msavi">MSAVI</option>
-                        <option value="sipi">SIPI</option>
-                        <option value="gci">GCI</option>
-                        <option value="ndsi">NDSI</option>
-                    </select>
-                    {{ legend|safe }}
-                </div>
-            </div>
-            <div class="cont">
-                <div id="viewDiv">
-                    {{ iframe|safe }}
-                </div>
-                <div class="foot">
-                    <div class="head-cont">
-                        <div class="calendar">
-                            <svg xmlns="http://www.w3.org/2000/svg" height="28px" viewBox="0 -960 960 960" width="28px" fill="currentColor"><path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Z"/></svg>
-                        </div>
-                        <input type="date" name="datePick" id="datePicker" onchange="update()">
-                        <div class="inf res">
-                            <div class="svg">
-                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M560-32v-80q117 0 198.5-81.5T840-392h80q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T560-32Zm0-160v-80q50 0 85-35t35-85h80q0 83-58.5 141.5T560-192ZM222-57q-15 0-30-6t-27-17L23-222q-11-12-17-27t-6-30q0-16 6-30.5T23-335l127-127q23-23 57-23.5t57 22.5l50 50 28-28-50-50q-23-23-23-56t23-56l57-57q23-23 56.5-23t56.5 23l50 50 28-28-50-50q-23-23-23-56.5t23-56.5l127-127q12-12 27-18t30-6q15 0 29.5 6t26.5 18l142 142q12 11 17.5 25.5T895-730q0 15-5.5 30T872-673L745-546q-23 23-56.5 23T632-546l-50-50-28 28 50 50q23 23 22.5 56.5T603-405l-56 56q-23 23-56.5 23T434-349l-50-50-28 28 50 50q23 23 22.5 57T405-207L278-80q-11 11-25.5 17T222-57Zm0-79 42-42-142-142-42 42 142 142Zm85-85 42-42-142-142-42 42 142 142Zm184-184 56-56-142-142-56 56 142 142Zm198-198 42-42-142-142-42 42 142 142Zm85-85 42-42-142-142-42 42 142 142ZM448-504Z"/></svg>
-                            </div>
-                            <div class="reso">
-                                <p class="txt">Resolution</p>
-                                <p class="val">10 meters</p>
-                            </div>
-                        </div>
-                        <div class="inf level">
-                            <div class="svg">
-                                <p class="txt">Level:</p>
-                            </div>
-                            <input type="number" name="selLevel" id="selectLevel" class="val" value="1">
-                        </div>
-                    </div>
-                    <div class="main-cont">
-                        <div class="first">
-                            <p class="param">Parameter <span>{{param}}</span></p>
-                            <p class="date">Date <span>{{imgd}}</span></p>
-                            <p class="action">Targeted Data <span>{{target}}</span></p>
-                            <p class="use">Useful when <span>{{use}}</span></p>
-                        </div>
-                        <div class="second">
-                            <div class="dash">
-                                <p class="title">Crop</p>
-                                <select name="selCul" id="selectCul" class="cul" onchange="update()">
-                                    <option value="whea" selected>Wheat</option>
-                                    <option value="rice">Rice</option>
-                                    <option value="maiz">Maize</option>
-                                    <option value="pota">Potato</option>
-                                    <option value="swpo">Sweet Potato</option>
-                                    <option value="pmil">Pearl Millet</option>
-                                    <option value="smil">Small Millet</option>
-                                    <option value="sorg">Sorghum</option>
-                                </select>
-                                <p class="title">Planting Date</p>
-                                <input type="date" name="selPd" id="selectPd" onchange="update()">
-                            </div>
-                            <div class="result">
-                                <div class="graph">
-                                    {{ div|safe }}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            
         </section>
     </section>
     <script src="{{ url_for('static', filename='js/dash/home.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/dash/land.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dash/tasks.js') }}"></script>
 </body>
 </html>

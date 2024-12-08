@@ -14,7 +14,7 @@
 
     /*Hovers*/
     --row-hover: rgb(222, 226, 230);
-    --li-hover: hsl(20, 15%, 92%);
+    --li-hover: #eeeae8;
 
     /*Borders*/
     --border: hsl(0, 5%, 85%);
@@ -35,7 +35,7 @@
     --color2: hsl(180, 74%, 72%);
     --color3: rgb(117, 186, 255);
     --color4: rgb(161, 154, 254);
-    --color5: hsl(198, 19%, 89%);
+    --color5: #dee5e8;
     --color6: hsl(168, 100%, 36%);
     --color7: rgb(0, 204, 201);
     --color8: #0984e1;
@@ -48,7 +48,7 @@
     --color15: hsl(196, 7%, 42%);
     --color16: rgb(253, 203, 109);
     --color17: rgb(225, 114, 86);
-    --color18: rgb(214, 46, 46);
+    --color18: #d62e2e;
     --color19: hsl(331, 78%, 59%);
     --color20: hsl(193, 9%, 19%);
 }

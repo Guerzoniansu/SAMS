@@ -340,7 +340,7 @@ def calculate_best_planting_date(dt, crop: str):
 
 #     return best_date, dt[['ds', 'water_deficit']]
 
-def getForecastsTableForBestPlantingDate(key: str = "data", key_rad = "data_rad"):
+def getForecastsTableForPlantingDate(key: str = "data", key_rad = "data_rad"):
     fcstPrectotcorr = getParamCampaignForecast(key, "prectotcorr", campaign="ny")
     fcstEt0 = getRadParamCampaignForecast(key_rad, param="et0", campaign="ny")
     sny = pd.to_datetime(f"{getLastDate(key).year + 1}0101")

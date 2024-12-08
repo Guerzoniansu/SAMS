@@ -20,10 +20,10 @@ crop_data = {
     'rice': {'mintgp': 90, 'maxtgp': 150,'kc': {
         'transplanting': 1.1, # 60 first days
         'mid-season': {
-            'lwd': 1.2,
-            'lwh': 1.05,
-            'swd': 1.35,
-            'swh': 1.3
+            'lwd': 1.2, # little wind dry
+            'lwh': 1.05, # little wind humid
+            'swd': 1.35, # strong wind dry
+            'swh': 1.3 # strong wind humid
         }, # intermediary days (tgs - 60 - 30 = tgs - 90)
         'bharvest': 1.0 # 30 last days
     }},

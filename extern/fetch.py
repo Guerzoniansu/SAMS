@@ -236,10 +236,10 @@ def getCountryData(lat: float, lon: float, var: str, tech: str, year: str, type:
 def getCoordsPointCountry(lat: float, lon: float, var: str, tech: str, year: str, crops: str):
     """
         params:
-            lat: float,
-            lon: float,
-            var: str,
-            tech: str,
+            lat: float: latitude
+            lon: float: longitude
+            var: str: variable
+            tech: str: technology ("R", "A" or "I"),
             year: str,
             crop: str
         returns:

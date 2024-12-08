@@ -1323,7 +1323,7 @@ def loadDashAnalysisBoard():
     swpoMintgp = a.getCropTotalGrowthPeriod(crop="swpo")
 
     # get fstTableForBpd
-    fcstTableForBpd = a.getForecastsTableForBestPlantingDate()
+    fcstTableForBpd = a.getForecastsTableForPlantingDate()
 
     # get cropdevelopment dataframe
     table = a.createCropDevelopmentDataFrame(fcstTableForBpd, plantingdate, crop, tgp=tgp)
@@ -1556,7 +1556,8 @@ def loadDashLandscapeBoard():
     legend = l.getHtmlLegend(param=param)
     target, use = l.getTargetedParameter(param=param)
 
-    wn, stage = l.getWaterNeeds(crop, pld)
+    cdData = l.createCropDevelopmentDataFrame(pld, crop)
+    script, div = l.getPlot(cdData, variables=["Water Need", "Rainfall"])
 
     return render_template('dashboard/land.html',
                            rlat = lat,
@@ -1570,9 +1571,42 @@ def loadDashLandscapeBoard():
                            imgd = imgd,
                            target = target,
                            use = use,
-                           wn = wn,
-                           stage = stage
+                           script = script,
+                           div = div,
+                           cdData = cdData
                         )
+
+
+
+@app.route('/dashboard/tasks', methods=['GET','POST'])
+def loadDashTaskBoard():
+    if request.method == 'POST':
+        lon = request.form['lon']
+        lat = request.form['lat']
+    else:
+        lon = request.args.get('lon', default=None)
+        lat = request.args.get('lat', default=None)
+        key = request.args.get('key', default="data")
+        key_rad = request.args.get('key_rad', default="data_rad")
+        imgd = request.args.get('imgd', default=date.today().strftime("%Y-%m-%d"))
+        param = request.args.get('param', default="default")
+        pld = request.args.get('pd', default=date.today().strftime("%Y-%m-%d"))
+        crop = request.args.get('crop', default="whea")
+
+    today = date.today()
+    nyStart = a.getNextYearStart(key=key)
+
+    
+
+    return render_template('dashboard/tasks.html',
+                           rlat = lat,
+                           rlon = lon,
+                           today = today,
+                           nyStart = nyStart
+                        )
+
+
+
 
 
 
