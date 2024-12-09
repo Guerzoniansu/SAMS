@@ -121,33 +121,49 @@ def getMonthlyData(lat: float, lon: float):
     return dtg
 
 
+# def process_prectotcorr(X):
+#     X = X.copy()  # Assurez-vous de ne pas modifier l'original
+#     var_cols = [col for col in X.columns if col.startswith("PRECTOTCORR")]
+#     X["mean_PRECTOTCORR"] = X[var_cols].fillna(0).sum(axis=1)
+#     X = X.loc[:, ~X.columns.str.startswith("PRECTOTCORR")]
+#     return X
+
+
+# def extract_numeric_values(X):
+#     columns_clrsky = [col for col in X.columns if col.startswith("CLRSKY_DAYS")]
+#     for col in columns_clrsky:
+#         X[col] = X[col].str.extract(r'(\d+)').astype(float)
+#     return X
+
+
 def predict(dt: pd.DataFrame, tech: str = "A", crop: str = "whea"):
     path = os.path.join(os.getcwd(), "datasets", "ACP", tech)
-    proj_path = os.path.join(path, f"dim_projection_{tech}.csv")
-    acp_coefficients = pd.read_csv(proj_path, sep=";", index_col=0)
+    # proj_path = os.path.join(path, f"dim_projection_{tech}.csv")
+    # acp_coefficients = pd.read_csv(proj_path, sep=";", index_col=0)
     dtI = dt.copy()
 
     # columns_clrsky = [col for col in dtI.columns if col.startswith("CLRSKY_DAYS")]
     # for col in columns_clrsky:
     #     dtI[col] = dtI[col].str.extract(r'(\d+)').astype(float)
 
-    point_test_var = dtI.drop(columns=["lon", "lat"], errors="ignore")
-    point_test_var = point_test_var.drop(columns=[col for col in point_test_var.columns if f"_{tech.lower()}" in col], errors="ignore")
-    point_test_var = point_test_var.drop(columns=[col for col in point_test_var.columns if "PRECTOTCORR" in col])
-    point_vector = point_test_var[acp_coefficients.index]
-    point_vector = np.array(point_vector)
-    acp_coefficients_1 = np.array(acp_coefficients.values)
-    point_reduced = np.dot(point_vector, acp_coefficients_1)
-    point_reduced_vector = point_reduced.flatten()
-    point_reduced_df = pd.DataFrame([point_reduced_vector], columns=acp_coefficients.columns)
-    selected_columns = [col for col in dtI.columns if 'PRECTOTCORR' in col]
-    sum_values = dtI[selected_columns].sum(axis=1)/12
-    point_reduced_df['lon'] = (dtI['lon'].tolist())[0]
-    point_reduced_df['lat'] = (dtI['lat'].tolist())[0]
-    point_reduced_df['mean_PRECTOTCORR'] = (sum_values.tolist())[0]
-    point_reduced_df = point_reduced_df[['lon', 'lat'] + [col for col in point_reduced_df.columns if col not in ['lon', 'lat']]]
-    point_reduced_df['lon'] = pd.to_numeric(point_reduced_df['lon'], errors='coerce')
-    point_reduced_df['lat'] = pd.to_numeric(point_reduced_df['lat'], errors='coerce')
+    # point_test_var = dtI.drop(columns=["lon", "lat"], errors="ignore")
+    # point_test_var = point_test_var.drop(columns=[col for col in point_test_var.columns if f"_{tech.lower()}" in col], errors="ignore")
+    # point_test_var = point_test_var.drop(columns=[col for col in point_test_var.columns if "PRECTOTCORR" in col])
+    # point_vector = point_test_var[acp_coefficients.index]
+    # point_vector = np.array(point_vector)
+    # acp_coefficients_1 = np.array(acp_coefficients.values)
+    # point_reduced = np.dot(point_vector, acp_coefficients_1)
+    # point_reduced_vector = point_reduced.flatten()
+    # point_reduced_df = pd.DataFrame([point_reduced_vector], columns=acp_coefficients.columns)
+    # selected_columns = [col for col in dtI.columns if 'PRECTOTCORR' in col]
+    # sum_values = dtI[selected_columns].sum(axis=1)/12
+    # point_reduced_df['lon'] = (dtI['lon'].tolist())[0]
+    # point_reduced_df['lat'] = (dtI['lat'].tolist())[0]
+    # point_reduced_df['mean_PRECTOTCORR'] = (sum_values.tolist())[0]
+    # point_reduced_df = point_reduced_df[['lon', 'lat'] + [col for col in point_reduced_df.columns if col not in ['lon', 'lat']]]
+    
+    # point_reduced_df['lon'] = pd.to_numeric(point_reduced_df['lon'], errors='coerce')
+    # point_reduced_df['lat'] = pd.to_numeric(point_reduced_df['lat'], errors='coerce')
 
     # scaler = joblib.load(os.path.join(path, f"scaler_{crop}_{tech}.pkl"))
     # point_reduced_df = scaler.transform(point_reduced_df.to_numpy())
@@ -163,10 +179,11 @@ def predict(dt: pd.DataFrame, tech: str = "A", crop: str = "whea"):
     # for col in standardized_values.columns:
     #     point_reduced_df[col] = (standardized_values[col].tolist())[0]
 
-    model = xgb.Booster()
-    model.load_model(os.path.join(path, f"{crop}_{tech}.json"))
-    data_input = xgb.DMatrix(point_reduced_df)
-    prediction = model.predict(data_input)
+    # model = xgb.Booster()
+    # model.load_model(os.path.join(path, f"{crop}_{tech}.json"))
+    # data_input = xgb.DMatrix(point_reduced_df)
+    model = joblib.load(os.path.join(path, f"{crop}_{tech}.pkl"))
+    prediction = model.predict(dtI)
     return round(prediction[0], 2)
     
     # try:

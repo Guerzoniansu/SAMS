@@ -1960,52 +1960,108 @@ def createCropDevelopmentDataFrame(start_date: str, crop: str, tgp: int = None):
     Returns:
         DataFrame: A DataFrame containing crop development details.
     """
-    crop_info = cste.crop_data[crop]
-    kc_stages = crop_info['kc']
-    # stages = [round(tgp * kc/sum(kc_stages)) for kc in kc_stages]
-    stages = crop_info.get('gsmax', [])
-    tgp = crop_info['maxtgp']
+    if crop!="rice":
+        crop_info = cste.crop_data[crop]
+        kc_stages = crop_info['kc']
+        # stages = [round(tgp * kc/sum(kc_stages)) for kc in kc_stages]
+        stages = crop_info.get('gsmax', [])
+        tgp = crop_info['maxtgp']
 
-    dt = getForecastForCropDevelopment(tgp, pld=start_date)
-    dt['ds'] = pd.to_datetime(dt['ds']).dt.date
+        dt = getForecastForCropDevelopment(tgp, pld=start_date)
+        dt['ds'] = pd.to_datetime(dt['ds']).dt.date
 
-    # Filter data starting from the given start_date
-    start_idx = dt[dt['ds'] == pd.to_datetime(start_date).date()].index[0]
-    growth_period = dt.iloc[start_idx:start_idx + tgp].copy()
+        # Filter data starting from the given start_date
+        start_idx = dt[dt['ds'] == pd.to_datetime(start_date).date()].index[0]
+        growth_period = dt.iloc[start_idx:start_idx + tgp].copy()
 
-    # Initialize columns for the output DataFrame
-    growth_period['STAGE_CODE'] = None
-    growth_period['STAGE'] = None
-    growth_period['Water Need'] = 0.0
-    growth_period['Rainfall effectiveness'] = 0.0
+        # Initialize columns for the output DataFrame
+        growth_period['STAGE_CODE'] = None
+        growth_period['STAGE'] = None
+        growth_period['Water Need'] = 0.0
+        growth_period['Rainfall effectiveness'] = 0.0
 
-    day_index = 0
+        day_index = 0
 
-    for stage_idx, (stage_length, kc) in enumerate(zip(stages, kc_stages), start=1):
-        stage_data = growth_period.iloc[day_index:day_index + stage_length]
-        water_need = (stage_data['ET0'] * kc).astype(float)
-        effectiveness = (stage_data['PRECTOTCORR'] / water_need).fillna(0).astype(float) * 100
+        for stage_idx, (stage_length, kc) in enumerate(zip(stages, kc_stages), start=1):
+            stage_data = growth_period.iloc[day_index:day_index + stage_length]
+            water_need = (stage_data['ET0'] * kc).astype(float)
+            effectiveness = (stage_data['PRECTOTCORR'] / water_need).fillna(0).astype(float) * 100
 
-        if stage_idx == 1:
-            stage = "Initial Phase"
-        elif stage_idx == 2:
-            stage = "Crop Development Phase"
-        elif stage_idx == 3:
-            stage = "Middle Season Stage"
-        else:
-            stage = "Late Season Stage"
+            if stage_idx == 1:
+                stage = "Initial Phase"
+            elif stage_idx == 2:
+                stage = "Crop Development Phase"
+            elif stage_idx == 3:
+                stage = "Middle Season Stage"
+            else:
+                stage = "Late Season Stage"
 
-        # Update the DataFrame
-        growth_period.loc[stage_data.index, 'STAGE_CODE'] = stage_idx
-        growth_period.loc[stage_data.index, 'STAGE'] = f"{stage}"
-        growth_period.loc[stage_data.index, 'Water Need'] = water_need.values
-        growth_period.loc[stage_data.index, 'Rainfall effectiveness'] = effectiveness.values
+            # Update the DataFrame
+            growth_period.loc[stage_data.index, 'STAGE_CODE'] = stage_idx
+            growth_period.loc[stage_data.index, 'STAGE'] = f"{stage}"
+            growth_period.loc[stage_data.index, 'Water Need'] = water_need.values
+            growth_period.loc[stage_data.index, 'Rainfall effectiveness'] = effectiveness.values
 
-        day_index += stage_length
+            day_index += stage_length
 
-    growth_period.rename(columns={'PRECTOTCORR': "Rainfall"}, inplace=True)
+        growth_period.rename(columns={'PRECTOTCORR': "Rainfall"}, inplace=True)
 
-    return growth_period#.reset_index(drop=True)
+        return growth_period#.reset_index(drop=True)
+    else:
+        crop_info = cste.crop_data[crop]
+        kc_stages = crop_info['kc']
+        tgp = tgp if tgp else crop_info['maxtgp']
+
+        # Determine growth stage lengths
+        initial_length = 60  # Transplanting phase
+        final_length = 30    # Harvest phase
+        mid_length = tgp - initial_length - final_length
+
+        # Assign `kc` values for mid-season stage based on environmental condition (e.g., 'lwd')
+        mid_season_kc = kc_stages['mid-season']['lwd']  # Little Wind Dry
+
+        stages = [initial_length, mid_length, final_length]
+        kc_values = [kc_stages['transplanting'], mid_season_kc, kc_stages['bharvest']]
+
+        # Prepare forecast data
+        dt = getForecastForCropDevelopment(tgp, pld=start_date)
+        dt['ds'] = pd.to_datetime(dt['ds']).dt.date
+
+        # Filter data starting from the given start_date
+        start_idx = dt[dt['ds'] == pd.to_datetime(start_date).date()].index[0]
+        growth_period = dt.iloc[start_idx:start_idx + tgp].copy()
+
+        # Initialize columns for the output DataFrame
+        growth_period['STAGE_CODE'] = None
+        growth_period['STAGE'] = None
+        growth_period['Water Need'] = 0.0
+        growth_period['Rainfall effectiveness'] = 0.0
+
+        day_index = 0
+
+        for stage_idx, (stage_length, kc) in enumerate(zip(stages, kc_values), start=1):
+            stage_data = growth_period.iloc[day_index:day_index + stage_length]
+            water_need = (stage_data['ET0'] * kc).astype(float)
+            effectiveness = (stage_data['PRECTOTCORR'] / water_need).fillna(0).astype(float) * 100
+
+            if stage_idx == 1:
+                stage = "Transplanting Phase"
+            elif stage_idx == 2:
+                stage = "Mid-Season Phase"
+            else:
+                stage = "Harvest Phase"
+
+            # Update the DataFrame
+            growth_period.loc[stage_data.index, 'STAGE_CODE'] = stage_idx
+            growth_period.loc[stage_data.index, 'STAGE'] = f"{stage}"
+            growth_period.loc[stage_data.index, 'Water Need'] = water_need.values
+            growth_period.loc[stage_data.index, 'Rainfall effectiveness'] = effectiveness.values
+
+            day_index += stage_length
+
+        growth_period.rename(columns={'PRECTOTCORR': "Rainfall"}, inplace=True)
+
+        return growth_period
 
 
 def getWaterNeeds(df: pd.DataFrame):

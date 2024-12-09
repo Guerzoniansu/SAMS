@@ -5,22 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dash | Tasks</title>
 
-    <meta
-      name="description"
-      content="Stay organized with our user-friendly Calendar featuring events, reminders, and a customizable interface. Built with HTML, CSS, and JavaScript. Start scheduling today!"
-    />
-    <meta
-      name="keywords"
-      content="calendar, events, reminders, javascript, html, css, open source coding"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css"
-      integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    />
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
@@ -194,6 +178,14 @@
                     Tasks
                 </div>
             </a>
+            <a href="/dashboard/samsbot?lat={{rlat}}&lon={{rlon}}&key=data&key_rad=data_rad" class="item home" status="none">
+                <div class="icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M160-120v-200q0-33 23.5-56.5T240-400h480q33 0 56.5 23.5T800-320v200H160Zm200-320q-83 0-141.5-58.5T160-640q0-83 58.5-141.5T360-840h240q83 0 141.5 58.5T800-640q0 83-58.5 141.5T600-440H360ZM240-200h480v-120H240v120Zm120-320h240q50 0 85-35t35-85q0-50-35-85t-85-35H360q-50 0-85 35t-35 85q0 50 35 85t85 35Zm0-80q17 0 28.5-11.5T400-640q0-17-11.5-28.5T360-680q-17 0-28.5 11.5T320-640q0 17 11.5 28.5T360-600Zm240 0q17 0 28.5-11.5T640-640q0-17-11.5-28.5T600-680q-17 0-28.5 11.5T560-640q0 17 11.5 28.5T600-600ZM480-200Zm0-440Z"/></svg>
+                </div>
+                <div class="text">
+                    SamsBot
+                </div>
+            </a>
         </div>
     </nav>
     <section class="main">
@@ -208,7 +200,88 @@
             </div>
         </header>
         <section class="content">
+            <div id="container">
+                <div id="header">
+                    <div id="monthDisplay"></div>
+                    <div>
+                        <button id="backButton">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="32px" viewBox="0 -960 960 960" width="32px" fill="currentColor"><path d="M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z"/></svg>
+                        </button>
+                        <button id="nextButton">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="32px" viewBox="0 -960 960 960" width="32px" fill="currentColor"><path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="weekdays">
+                    <div>Sunday</div>
+                    <div>Monday</div>
+                    <div>Tuesday</div>
+                    <div>Wednesday</div>
+                    <div>Thursday</div>
+                    <div>Friday</div>
+                    <div>Saturday</div>
+                </div>
+
+                <div id="calendar"></div>
+            </div>
+            <!-- <div id="eventDisplayer">
+                <div id="header-task">
+                    <p class="weekday-s"></p>
+                    <p class="date-s"></p>
+                </div>
+                <div id="eventList"></div>
+                <div id="add-btn">
+                    <button type="button">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="48px" viewBox="0 -960 960 960" width="48px" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
+                    </button>
+                </div>
+            </div> -->
+
+            <!-- <div id="newEventModal">
+                <h2>New Task</p>
+                <input id="eventTitleInput" placeholder="Event Title" />
+                <textarea name="description" id="descriptionNewTask" cols="94" rows="8" placeholder="Event Description"></textarea>
+
+                <div class="btns">
+                    <button id="saveButton">Save</button>
+                    <button id="cancelButton">Cancel</button>
+                </div>
+            </div> -->
+
             
+          
+            <!-- <div id="deleteEventModal">
+                <h2>Event</h2>
+            
+                <p id="eventText"></p>
+            
+                <button id="deleteButton">Delete</button>
+                <button id="closeButton">Close</button>
+            </div> -->
+
+            
+
+            <div id="modalBackDrop">
+                <div id="newEventModal">
+                    <h2>New Event</h2>
+                
+                    <input id="eventTitleInput" placeholder="Event Title" />
+                
+                    <div class="btns">
+                        <button id="saveButton">Save</button>
+                        <button id="cancelButton">Cancel</button>
+                    </div>
+                </div>
+                <div id="deleteEventModal">
+                    <h2>Delete Task</h2>
+                    <p id="eventText"></p>
+                    <div class="btns">
+                        <button id="deleteButton">Delete</button>
+                        <button id="closeButton">Close</button>
+                    </div>
+                </div>
+            </div>
         </section>
     </section>
     <script src="{{ url_for('static', filename='js/dash/home.js') }}"></script>

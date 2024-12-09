@@ -19,6 +19,18 @@ from extern.dash import analysis as a
 from extern.dash import land as l
 from extern import predict
 
+def process_prectotcorr(X):
+    X = X.copy()  # Assurez-vous de ne pas modifier l'original
+    var_cols = [col for col in X.columns if col.startswith("PRECTOTCORR")]
+    X["mean_PRECTOTCORR"] = X[var_cols].fillna(0).sum(axis=1)
+    X = X.loc[:, ~X.columns.str.startswith("PRECTOTCORR")]
+    return X
+
+
+def extract_numeric_values(X):
+    
+    return X
+
 temp_storage = {}
 
 app = Flask(__name__)
@@ -1657,6 +1669,33 @@ def loadDashTaskBoard():
                         )
 
 
+
+@app.route('/dashboard/samsbot', methods=['GET','POST'])
+def loadDashBotBoard():
+    if request.method == 'POST':
+        lon = request.form['lon']
+        lat = request.form['lat']
+    else:
+        lon = request.args.get('lon', default=None)
+        lat = request.args.get('lat', default=None)
+        key = request.args.get('key', default="data")
+        key_rad = request.args.get('key_rad', default="data_rad")
+        imgd = request.args.get('imgd', default=date.today().strftime("%Y-%m-%d"))
+        param = request.args.get('param', default="default")
+        pld = request.args.get('pd', default=date.today().strftime("%Y-%m-%d"))
+        crop = request.args.get('crop', default="whea")
+
+    today = date.today()
+    nyStart = a.getNextYearStart(key=key)
+
+    
+
+    return render_template('dashboard/samsbot.html',
+                           rlat = lat,
+                           rlon = lon,
+                           today = today,
+                           nyStart = nyStart
+                        )
 
 
 

@@ -55,12 +55,13 @@ def showFcstTable(key: str, param: str, period: int):
     return html
 
 def getCropsData(lat: float, lon: float, var: str, tech: str, year: str, crops: str, type: str = "country"):
+    if crops == "smil":
+        crops = "mill"
     cropsT = f"{crops.lower()}_{tech.lower()}" if crops else []
     dt = dtmaker.getCountryData(lat, lon, var, tech, year, type)
     dt.columns = dt.columns.str.lower()
     dt = dt[['x', 'y', cropsT]]
     dt = dt.rename(columns={cropsT: "crop"})
     return dt
-
 
 
