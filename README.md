@@ -78,6 +78,11 @@ These pages are designed to help the farmer schedule work on his land and discus
 ![Visuals of bot page](./captures/bot.png)
 
 
+### Overall
+
+This is a bad work with (we believe) good ideas. There are plenty of fallbacks in all that is here, it is not intuitive, it is not good looking and it was rushed but there are still good things to point out of it, the idea is not good, the models are not bad but they really need improvements. Briefly, a lot of work to do for 70% bad and 30% good result here.
+
+
 ## Development
 
 This project was developed using Flask mainly as Web Development framework. The dashboard uses Python 3.11.9 as Language for processes (core) and HTML, JS and CSS for pages (front).
