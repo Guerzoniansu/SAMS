@@ -9,6 +9,75 @@ This project was powered by [Power Larc NASA](https://power.larc.nasa.gov/) (for
 ![Visuals of the application](./static/img/img.jpeg)
 
 
+## Functionalities
+
+### Home page or first page
+
+The home page provides an overview of the main indicators and the general time span used throughout the application. However, in certain sections of the application, we go beyond these core indicators and explore additional variables available through the [Power Larc NASA](https://power.larc.nasa.gov/) project. The application itself uses data from 1995 up to the most recent day available on [Power Larc NASA](https://power.larc.nasa.gov/)
+, making it more real-time than what the home page summary reflects. For the analysis page, however, we restrict the time span to the one displayed on the home page.
+
+Below is a visual of the home page:
+
+![Visuals of the home page](./captures/home.png)
+
+As we can see, we have the chosen point coordinates, timespan, and the parameters
+
+
+### Climate indicators analysis page
+
+The climate analysis page show a brief overview over the variations, tendances over the evolution of the climate indicators described on the home page. These include basic statistics and graphics just showing evolution in these.
+
+Here is a visual of the climate page
+
+![Visuals of climate analysis page](./captures/climate_analysis.png)
+
+And for each specific indicator, we show specific analysis on these. Here is an example for temperature variable.
+
+![Visuals of climate page, temperature example](./captures/climate_temperature.jpeg)
+
+
+### Soil indicators analysis page
+
+The soil analysis page is basicalled the climate analysis page but for soil indicators.
+
+Below are visuals of the soil analysis page and specifically for profile soil moisture example
+
+![Visuals of the soil analysis page](./captures/soil_analysis.png)
+
+![Visuals of the soil analysis page, profile soil moisture example](./captures/soil_psm.jpeg)
+
+
+### Agriculture analysis page
+
+This page is designed to show farmers how crop productions, yields, harvested areas and production areas are distributed at country-level for a total of 42 crops discussed on the [MapSpam](https://mapspam.info/) project.
+
+Visuals of the yields map for wheat below
+
+![Visuals of the application](./static/img/img.jpeg)
+
+
+### Analysis page
+
+On the analysis page, we present detailled analysis of indicators we mentioned in the home page. Pay attention to the fact that this page is not complete and is not quite functional yet. It still needs improvements both on design and content.
+
+![Visuals of analysis page](./captures/analysis.jpeg)
+
+
+### Landscape page
+
+Next is the landscape page which gives an interactive map of the land located at the point the user selected, there is possibility to change the parameters and understand what is going on on the land. Although this is also not complete,further work on it would consist probably on implementing methods to retrieve these data in real-time, analyse them and give meaningful insights to the farmer about his land.
+
+![Visuals of landscape page](./captures/landscape.jpeg)
+
+### Tasks and SamsBot page
+
+These pages are designed to help the farmer schedule work on his land and discuss with a chatbot that will help him understand things about his land in real-time and such things. These pages are also not complete and further implementation would consist on adding reminders, mail notifications, etc..., train a very specific LLM designed specifically for this task.
+
+![Visuals of tasks page](./captures/task.png)
+
+![Visuals of bot page](./captures/bot.png)
+
+
 ## Development
 
 This project was developed using Flask mainly as Web Development framework. The dashboard uses Python 3.11.9 as Language for processes (core) and HTML, JS and CSS for pages (front).
